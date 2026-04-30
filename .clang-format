@@ -1,0 +1,14 @@
+# LLVM base is a common C++ default; explicit overrides below reduce team churn.
+BasedOnStyle: LLVM
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ContinuationIndentWidth: 4
+# 100 keeps lines readable on split views without forcing excessive wrapping.
+ColumnLimit: 100
+AllowShortIfStatementsOnASingleLine: false
+DerivePointerAlignment: false
+PointerAlignment: Left
+# Keep include ordering deterministic across platforms/LLVM versions.
+SortIncludes: CaseSensitive
+Standard: Latest

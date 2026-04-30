@@ -1,0 +1,18 @@
+{
+    "cmake.useCMakePresets": "always",
+    "cmake.configureOnOpen": true,
+    "cmake.buildBeforeRun": true,
+    "cmake.copyCompileCommands": "${workspaceFolder}/compile_commands.json",
+    "C_Cpp.intelliSenseEngine": "disabled",
+    "C_Cpp.autocomplete": "disabled",
+    "C_Cpp.errorSquiggles": "disabled",
+    "[cpp]": {
+        "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd",
+        "editor.formatOnSave": true,
+        "editor.formatOnSaveMode": "modificationsIfAvailable",
+        "editor.formatOnType": true
+    },
+    "clangd.arguments": [
+        "--compile-commands-dir=${workspaceFolder}/build/debug"
+    ]
+}
