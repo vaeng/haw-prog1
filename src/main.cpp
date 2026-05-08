@@ -1,111 +1,192 @@
-#include "Point.h"
-#include "Point3D.h"
 #include <SFML/Graphics.hpp>
-#include <iostream>
+#include <SFML/Graphics/CircleShape.hpp>
+#include <SFML/Graphics/Color.hpp>
+#include <SFML/Graphics/ConvexShape.hpp>
+#include <SFML/Graphics/Rect.hpp>
+#include <SFML/Graphics/RectangleShape.hpp>
+#include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/Graphics/Texture.hpp>
+#include <SFML/System/Angle.hpp>
+#include <SFML/Window/Keyboard.hpp>
+#include <SFML/Window/Mouse.hpp>
+#include <SFML/Window/Window.hpp>
+#include <SFML/Window/WindowEnums.hpp>
 
-auto findLargest(int a, int b, int c) -> auto {
-    auto largestAB = (a > b) ? a : b;
-    return (largestAB > c) ? largestAB : c;
+#include <optional>
+#include <vector>
+
+auto assignment1(sf::RenderWindow &window, std::vector<sf::FloatRect> &boundingBoxes) -> void
+{
+    // A red circle with a green outline
+    sf::CircleShape circle(50.f);
+    circle.setFillColor(sf::Color::Red);
+    circle.setOutlineThickness(10.f);
+    circle.setOutlineColor(sf::Color::Green);
+    circle.setPosition({50.0, 50.0});
+    boundingBoxes.emplace_back(circle.getGlobalBounds());
+    window.draw(circle);
+
+    // An orange rectangle
+    sf::RectangleShape rect({50.0, 80.0});
+    rect.setFillColor(sf::Color{255, 128, 0});
+    rect.setPosition({190, 50});
+    boundingBoxes.emplace_back(rect.getGlobalBounds());
+    window.draw(rect);
+
+    // A blue line
+    sf::RectangleShape line({5.0, 80.0});
+    line.setFillColor(sf::Color::Blue);
+    line.setPosition({270, 50});
+    boundingBoxes.emplace_back(line.getGlobalBounds());
+    window.draw(line);
+
+    // An octagon with a texture
+    sf::Texture tex("assets/textures/red_text.jpg");
+    sf::CircleShape octagon(50, 8);
+    octagon.setTexture(&tex);
+    octagon.setPosition({320, 50});
+    boundingBoxes.emplace_back(octagon.getGlobalBounds());
+    window.draw(octagon);
+
+    // A purple "Hello, world!" text
+    sf::Font font("assets/fonts/Urban Heroes.ttf");
+    sf::Text text(font);
+    text.setCharacterSize(90);
+    text.setString("HELLO, WORLD!");
+    text.setFillColor(sf::Color{102, 0, 153});
+    text.setPosition({50, 200});
+    boundingBoxes.emplace_back(text.getGlobalBounds());
+    window.draw(text);
 }
 
-auto assignment2() -> void {
-    int a = 0;
-    int b = 0;
-    int c = 0;
-    std::cout << "Enter three numbers!\n";
-    std::cout << "a: ";
-    std::cin >> a;
-    std::cout << "b: ";
-    std::cin >> b;
-    std::cout << "c: ";
-    std::cin >> c;
+auto assignment2(sf::CircleShape octagon, sf::Time elapsed) -> void { return; }
 
-    auto largest = findLargest(a, b, c);
-    std::cout << "The largest number is: " << largest << "\n";
-}
+auto startGame() -> void
+{
+    // Create a window without titlebar, resize or close buttons and with a size of 800x600 pixels
+    // with a white background and set the title to "My first SFML game".
+    const auto *TITLE = "My first SFML game";
+    const auto HORIZONTAL_RESOLUTION = 800U;
+    const auto VERTICAL_RESOLUTION = 600U;
 
-auto assignment3() -> void {
-    Point point{0, 0};
-    std::cout << "Initial position: (" << point.x << ", " << point.y << ")\n";
-    point.move(5, 3);
-    std::cout << "After moving: (" << point.x << ", " << point.y << ")\n";
-}
+    sf::RectangleShape rotatingRect({20, 75});
+    rotatingRect.setPosition({250, 360});
+    rotatingRect.setFillColor(sf::Color::Black);
+    rotatingRect.setOrigin({10, 75 / 2});
+    auto isFocused = true;
+    const auto degreesPerSecond = 180.0F;
 
-auto globalMove(Point* point, int dx, int dy) -> void { point->move(dx, dy); }
+    sf::ConvexShape player(4);
+    player.setPoint(0, {0.f, 10.f});
+    player.setPoint(1, {40.f, 0.f});
+    player.setPoint(2, {0.f, -10.f});
+    player.setPoint(3, {-20.f, 0.f});
 
-auto globalMoveByValue(Point point, int dx, int dy) -> void { point.move(dx, dy); }
+    player.setFillColor(sf::Color::Cyan);
 
-auto globalMoveByReference(Point& point, int dx, int dy) -> void { point.move(dx, dy); }
+    player.setPosition({400, 450});
+    auto savePosition{player.getPosition()};
+    const auto playerMovementPerSecond = 200.F;
 
-auto assignment4() -> void {
-
-    // Create a point object in main() and call move(x,y) with parameters from user input.
-    Point pointA{0, 0};
-    pointA.move(2, 3);
-    std::cout << "Position of pointA: (" << pointA.x << ", " << pointA.y << ")\n";
-
-    // Create a point object pointer in main() and use "new" to create a new point object.
-    auto* pointB = new Point{0, 0};
-    std::cout << "Initial position of pointB: (" << pointB->x << ", " << pointB->y << ")\n";
-
-    // Call move(x,y) on this pointer. Don't forget to "delete" the pointer object again.
-    pointB->move(4, 6);
-    std::cout << "After moving pointB: (" << pointB->x << ", " << pointB->y << ")\n";
-    delete pointB;
-
-    globalMoveByValue(pointA, 1, 1);
-    std::cout << "After globalMove by value, pointA: (" << pointA.x << ", " << pointA.y << ")\n";
-
-    globalMoveByReference(pointA, 3, 4);
-    std::cout << "After globalMove by reference, pointA: (" << pointA.x << ", " << pointA.y
-              << ")\n";
-
-    /*
-
-        Create a second class "3DPoint" that inherits from "Point" and has an additional z variable.
-
-        Add a function "void printPosition()" to both "Point" and "3DPoint". It should output the
-    x,y or x,y,z values to the command line.
-
-        Create a vector<Point> in main() and put several Point and 3DPoint objects in this vector.
-    Loop through this vector and call "printPosition()" on each object.
-    */
-
-    auto point1 = Point{0, 0};
-    auto* point2 = &point1;
-    std::cout << "Initial position of point1: (" << point1.x << ", " << point1.y << ")\n";
-    std::cout << "Initial position of point2: (" << point2->x << ", " << point2->y << ")\n";
-    globalMove(point2, 2, 5);
-    std::cout << "After moving point2, point1: (" << point1.x << ", " << point1.y << ")\n";
-    std::cout << "After moving point2, point2: (" << point2->x << ", " << point2->y << ")\n";
-
-    auto point3D1 = Point3D{0, 0, 0};
-    auto point3D2 = Point3D{1, 2, 3};
-    point3D1.printPosition();
-    point3D2.printPosition();
-
-    auto points = std::vector<Point*>{&point1, &point3D1, &point3D2};
-    for (const auto* point : points) {
-        point->printPosition();
-    }
-}
-
-auto main() -> int {
-    /*
-    sf::RenderWindow window(sf::VideoMode({800U, 600U}), "SFML on Windows");
-
-    while (window.isOpen()) {
-        while (const std::optional event = window.pollEvent()) {
-            if (event->is<sf::Event::Closed>()) {
+    sf::RenderWindow window(sf::VideoMode({HORIZONTAL_RESOLUTION, VERTICAL_RESOLUTION}), TITLE,
+                            sf::Style::None);
+    sf::Clock clock;
+    while (window.isOpen())
+    {
+        while (const std::optional event = window.pollEvent())
+        {
+            if (event->is<sf::Event::Closed>())
+            {
                 window.close();
+            }
+            if (event->is<sf::Event::FocusLost>())
+            {
+                isFocused = false;
+            }
+            if (event->is<sf::Event::FocusGained>())
+            {
+                isFocused = true;
             }
         }
 
-        window.clear();
+        sf::Time elapsedTime = clock.restart();
+        window.clear(sf::Color::White);
+        std::vector<sf::FloatRect> boundingBoxes{};
+        boundingBoxes.emplace_back(rotatingRect.getGlobalBounds());
+
+        assignment1(window, boundingBoxes);
+
+        // assignment 2:
+        if (isFocused)
+        {
+            rotatingRect.rotate(sf::degrees(degreesPerSecond * elapsedTime.asSeconds()));
+            auto playerBounds = player.getGlobalBounds();
+
+            // collision check
+            auto canMoveLeft{true};
+            auto canMoveRight{true};
+            auto canMoveUp{true};
+            auto canMoveDown{true};
+            for (const auto otherBox : boundingBoxes)
+            {
+                if (const std::optional intersection = playerBounds.findIntersection(otherBox))
+                {
+                    auto intersectionCenter{intersection.value().getCenter()};
+                    if (intersectionCenter.x < player.getPosition().x)
+                    {
+                        canMoveLeft = false;
+                    }
+                    if (intersectionCenter.x > player.getPosition().x)
+                    {
+                        canMoveRight = false;
+                    }
+                    if (intersectionCenter.y < player.getPosition().y)
+                    {
+                        canMoveUp = false;
+                    }
+                    if (intersectionCenter.y > player.getPosition().y)
+                    {
+                        canMoveDown = false;
+                    }
+                }
+            }
+
+            // movement
+            auto distance{playerMovementPerSecond * elapsedTime.asSeconds()};
+            if (canMoveRight && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
+            {
+                player.move({distance, 0});
+            }
+            else if (canMoveLeft && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
+            {
+                player.move({-distance, 0});
+            }
+            else if (canMoveUp && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))
+            {
+                player.move({0, -distance});
+            }
+            else if (canMoveDown && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down))
+            {
+                player.move({0, distance});
+            }
+        }
+
+        window.draw(rotatingRect);
+
+        // assignment 3:
+        window.draw(player);
+
+        // assignment 4:
+        auto mousePosition{sf::Mouse::getPosition(window)};
+        sf::View view{};
+        view.setCenter(player.getPosition() + static_cast<sf::Vector2f>(mousePosition));
+        window.setView(view);
         window.display();
     }
-    */
+}
 
-    assignment4();
+auto main() -> int
+{
+    startGame();
     return 0;
 }

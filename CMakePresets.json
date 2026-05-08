@@ -1,237 +1,26 @@
 {
-  "version": 8,
-  "cmakeMinimumRequired": {
-    "major": 3,
-    "minor": 25,
-    "patch": 0
-  },
+  "version": 3,
   "configurePresets": [
     {
-      "name": "base-debug",
-      "hidden": true,
-      "description": "Shared Debug defaults: Ninja generator, build/debug output, compile_commands, tidy ON, warnings-as-errors OFF.",
+      "name": "windows-clang-debug",
+      "displayName": "Windows Debug (clang-cl)",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/debug",
+      "binaryDir": "build/windows-clang-debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "ENABLE_CLANG_TIDY": "ON",
-        "ENABLE_WARNINGS_AS_ERRORS": "OFF"
+        "CMAKE_C_COMPILER": "clang-cl",
+        "CMAKE_CXX_COMPILER": "clang-cl"
       }
     },
     {
-      "name": "base-release",
-      "hidden": true,
-      "description": "Shared Release defaults: Ninja generator, build/release output, compile_commands, tidy OFF for faster optimized builds.",
+      "name": "windows-clang-release",
+      "displayName": "Windows Release (clang-cl)",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/release",
+      "binaryDir": "build/windows-clang-release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "ENABLE_CLANG_TIDY": "OFF",
-        "ENABLE_WARNINGS_AS_ERRORS": "OFF"
-      }
-    },
-    {
-      "name": "base-vcpkg",
-      "hidden": true,
-      "description": "Adds vcpkg toolchain support via VCPKG_ROOT for dependency resolution (SFML in this project).",
-      "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
-      }
-    },
-    {
-      "name": "base-sccache",
-      "hidden": true,
-      "description": "Enables compiler caching for faster incremental/rebuild times when sccache is installed.",
-      "cacheVariables": {
-        "CMAKE_CXX_COMPILER_LAUNCHER": "sccache"
-      }
-    },
-    {
-      "name": "windows-dev",
-      "displayName": "Windows Dev (clang + vcpkg + sccache)",
-      "description": "Recommended daily preset on Windows.",
-      "inherits": [
-        "base-debug",
-        "base-vcpkg",
-        "base-sccache"
-      ],
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Windows"
-      },
-      "cacheVariables": {
-        "CMAKE_CXX_COMPILER": "clang-cl",
-        "VCPKG_TARGET_TRIPLET": "x64-windows",
-        "VCPKG_HOST_TRIPLET": "x64-windows"
-      }
-    },
-    {
-      "name": "windows-release",
-      "displayName": "Windows Release (clang + vcpkg + sccache)",
-      "description": "Optimized Windows build for performance checks.",
-      "inherits": [
-        "base-release",
-        "base-vcpkg",
-        "base-sccache"
-      ],
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Windows"
-      },
-      "cacheVariables": {
-        "CMAKE_CXX_COMPILER": "clang-cl",
-        "VCPKG_TARGET_TRIPLET": "x64-windows",
-        "VCPKG_HOST_TRIPLET": "x64-windows"
-      }
-    },
-    {
-      "name": "linux-dev",
-      "displayName": "Linux Dev (clang + vcpkg)",
-      "description": "Recommended daily preset on Linux.",
-      "inherits": [
-        "base-debug",
-        "base-vcpkg"
-      ],
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Linux"
-      },
-      "cacheVariables": {
-        "CMAKE_CXX_COMPILER": "clang++",
-        "VCPKG_TARGET_TRIPLET": "x64-linux",
-        "VCPKG_HOST_TRIPLET": "x64-linux"
-      }
-    },
-    {
-      "name": "linux-release",
-      "displayName": "Linux Release (clang + vcpkg)",
-      "description": "Optimized Linux build for performance checks.",
-      "inherits": [
-        "base-release",
-        "base-vcpkg"
-      ],
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Linux"
-      },
-      "cacheVariables": {
-        "CMAKE_CXX_COMPILER": "clang++",
-        "VCPKG_TARGET_TRIPLET": "x64-linux",
-        "VCPKG_HOST_TRIPLET": "x64-linux"
-      }
-    },
-    {
-      "name": "macos-dev",
-      "displayName": "macOS Dev (clang + vcpkg)",
-      "description": "Recommended daily preset on macOS.",
-      "inherits": [
-        "base-debug",
-        "base-vcpkg"
-      ],
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Darwin"
-      },
-      "cacheVariables": {
-        "CMAKE_CXX_COMPILER": "clang++",
-        "VCPKG_TARGET_TRIPLET": "arm64-osx",
-        "VCPKG_HOST_TRIPLET": "arm64-osx"
-      }
-    },
-    {
-      "name": "macos-release",
-      "displayName": "macOS Release (clang + vcpkg)",
-      "description": "Optimized macOS build for performance checks.",
-      "inherits": [
-        "base-release",
-        "base-vcpkg"
-      ],
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Darwin"
-      },
-      "cacheVariables": {
-        "CMAKE_CXX_COMPILER": "clang++",
-        "VCPKG_TARGET_TRIPLET": "arm64-osx",
-        "VCPKG_HOST_TRIPLET": "arm64-osx"
-      }
-    }
-  ],
-  "buildPresets": [
-    {
-      "name": "windows-dev",
-      "configurePreset": "windows-dev"
-    },
-    {
-      "name": "windows-release",
-      "configurePreset": "windows-release"
-    },
-    {
-      "name": "linux-dev",
-      "configurePreset": "linux-dev"
-    },
-    {
-      "name": "linux-release",
-      "configurePreset": "linux-release"
-    },
-    {
-      "name": "macos-dev",
-      "configurePreset": "macos-dev"
-    },
-    {
-      "name": "macos-release",
-      "configurePreset": "macos-release"
-    }
-  ],
-  "testPresets": [
-    {
-      "name": "windows-dev",
-      "configurePreset": "windows-dev",
-      "output": {
-        "outputOnFailure": true
-      }
-    },
-    {
-      "name": "windows-release",
-      "configurePreset": "windows-release",
-      "output": {
-        "outputOnFailure": true
-      }
-    },
-    {
-      "name": "linux-dev",
-      "configurePreset": "linux-dev",
-      "output": {
-        "outputOnFailure": true
-      }
-    },
-    {
-      "name": "linux-release",
-      "configurePreset": "linux-release",
-      "output": {
-        "outputOnFailure": true
-      }
-    },
-    {
-      "name": "macos-dev",
-      "configurePreset": "macos-dev",
-      "output": {
-        "outputOnFailure": true
-      }
-    },
-    {
-      "name": "macos-release",
-      "configurePreset": "macos-release",
-      "output": {
-        "outputOnFailure": true
+        "CMAKE_C_COMPILER": "clang-cl",
+        "CMAKE_CXX_COMPILER": "clang-cl"
       }
     }
   ]

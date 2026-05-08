@@ -1,68 +1,146 @@
-# 3.25+ keeps preset and modern target behavior consistent on all student machines.
-cmake_minimum_required(VERSION 3.25)
-project(MyGame VERSION 0.1.0 LANGUAGES CXX)
+cmake_minimum_required(VERSION 3.22)
 
-# Optional quality gates: keep strictness opt-in for local development.
-option(ENABLE_WARNINGS_AS_ERRORS "Treat warnings as errors" OFF)
-option(ENABLE_CLANG_TIDY "Run clang-tidy during build when available" ON)
+# ------------------------------------------------------------
+# Project metadata
+# ------------------------------------------------------------
+project(
+    MyGame
+    VERSION 0.1
+    LANGUAGES CXX
+)
 
-# Needed by clangd for reliable IntelliSense/navigation in VS Code.
+# ------------------------------------------------------------
+# Tooling support
+# ------------------------------------------------------------
+# Required for clangd / clang-tidy
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Enables `ctest` integration now and keeps test setup ready as the project grows.
-include(CTest)
+# ------------------------------------------------------------
+# Game logic library
+# ------------------------------------------------------------
+add_library(game_core)
 
-find_package(SFML 3 COMPONENTS System Window Graphics Audio REQUIRED)
-
-add_executable(game)
-
-# New .cpp files under src/ are picked up automatically so they inherit target compile/include settings.
-file(GLOB_RECURSE GAME_SOURCES CONFIGURE_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cxx"
-)
-
-# New headers under include/ are picked up automatically for IDE visibility and source grouping.
-file(GLOB_RECURSE GAME_HEADERS CONFIGURE_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/*.hh"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/*.hxx"
-)
-
-target_sources(game PRIVATE ${GAME_SOURCES} ${GAME_HEADERS})
-target_include_directories(game PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
-
-# Prefer target-level requirements over global CMAKE_CXX_STANDARD.
-target_compile_features(game PRIVATE cxx_std_20)
-
-if(MSVC)
-    # clang-cl uses MSVC-style flags on Windows.
-    target_compile_options(game PRIVATE /W4 /permissive-)
-    if(ENABLE_WARNINGS_AS_ERRORS)
-        target_compile_options(game PRIVATE /WX)
-    endif()
-else()
-    # GCC/Clang warning baseline on Linux/macOS.
-    target_compile_options(game PRIVATE -Wall -Wextra -Wpedantic)
-    if(ENABLE_WARNINGS_AS_ERRORS)
-        target_compile_options(game PRIVATE -Werror)
-    endif()
-endif()
-
-target_link_libraries(game
+target_sources(game_core
     PRIVATE
-    SFML::System
-    SFML::Window
-    SFML::Graphics
-    SFML::Audio
+    src/game/game.cpp
+    include/game/game.hpp
 )
 
-if(ENABLE_CLANG_TIDY)
-    # Tool remains optional: configure succeeds even if clang-tidy is not installed.
-    find_program(CLANG_TIDY_EXE NAMES clang-tidy)
-    if(CLANG_TIDY_EXE)
-        set_target_properties(game PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
-    endif()
+# Public headers propagate include paths to dependents
+target_include_directories(game_core
+    PUBLIC
+        include
+)
+
+# Language standard (toolchain aware)
+target_compile_features(game_core
+    PUBLIC
+        cxx_std_23
+)
+
+# ------------------------------------------------------------
+# Main executable
+# ------------------------------------------------------------
+add_executable(my_game
+    src/main.cpp
+)
+
+# ------------------------------------------------------------
+# SFML 3.0 (vcpkg)
+# ------------------------------------------------------------
+find_package(SFML 3 REQUIRED COMPONENTS Graphics Window System)
+
+target_link_libraries(my_game
+    PRIVATE
+        game_core
+        SFML::Graphics
+        SFML::Window
+        SFML::System
+)
+
+# ------------------------------------------------------------
+# Assets: copy next to executable for dev runs
+# ------------------------------------------------------------
+add_custom_command(
+    TARGET my_game POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/assets
+        $<TARGET_FILE_DIR:my_game>/assets
+    COMMENT "Copying assets to build output"
+)
+
+# ------------------------------------------------------------
+# Source discovery for tooling (NOT for build)
+# Safe due to CONFIGURE_DEPENDS
+# ------------------------------------------------------------
+file(GLOB_RECURSE FORMAT_FILES
+    CONFIGURE_DEPENDS
+    ${CMAKE_SOURCE_DIR}/src/*.cpp
+    ${CMAKE_SOURCE_DIR}/src/game/*.cpp
+    ${CMAKE_SOURCE_DIR}/include/*.hpp
+)
+
+file(GLOB_RECURSE TIDY_FILES
+    CONFIGURE_DEPENDS
+    ${CMAKE_SOURCE_DIR}/src/*.cpp
+    ${CMAKE_SOURCE_DIR}/src/game/*.cpp
+)
+
+# ------------------------------------------------------------
+# clang-format targets
+# ------------------------------------------------------------
+find_program(CLANG_FORMAT_EXE clang-format)
+
+if (CLANG_FORMAT_EXE)
+    add_custom_target(format
+        COMMAND ${CLANG_FORMAT_EXE}
+            -i
+            --style=file
+            ${FORMAT_FILES}
+        COMMENT "Formatting source files (clang-format)"
+    )
+
+    add_custom_target(check-format
+        COMMAND ${CLANG_FORMAT_EXE}
+            --dry-run
+            --Werror
+            --style=file
+            ${FORMAT_FILES}
+        COMMENT "Checking code formatting (CI)"
+    )
 endif()
+
+# ------------------------------------------------------------
+# clang-tidy targets
+# ------------------------------------------------------------
+find_program(CLANG_TIDY_EXE clang-tidy)
+
+if (CLANG_TIDY_EXE)
+    add_custom_target(clang-tidy
+        COMMAND ${CLANG_TIDY_EXE}
+            -p ${CMAKE_BINARY_DIR}
+            --config-file=${CMAKE_SOURCE_DIR}/.clang-tidy
+            ${TIDY_FILES}
+        COMMENT "Running clang-tidy"
+    )
+
+    add_custom_target(check-tidy
+        COMMAND ${CLANG_TIDY_EXE}
+            -p ${CMAKE_BINARY_DIR}
+            --config-file=${CMAKE_SOURCE_DIR}/.clang-tidy
+            --warnings-as-errors=*
+            ${TIDY_FILES}
+        COMMENT "Checking clang-tidy (CI)"
+    )
+endif()
+
+# ------------------------------------------------------------
+# Optional install rules (future-proofing)
+# ------------------------------------------------------------
+install(TARGETS my_game
+    RUNTIME DESTINATION bin
+)
+
+install(DIRECTORY assets/
+    DESTINATION bin/assets
+)
