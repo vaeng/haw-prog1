@@ -2,26 +2,70 @@
   "version": 3,
   "configurePresets": [
     {
-      "name": "windows-clang-debug",
-      "displayName": "Windows Debug (clang-cl)",
+      "name": "linux-debug",
+      "displayName": "Linux Debug",
       "generator": "Ninja",
-      "binaryDir": "build/windows-clang-debug",
+      "binaryDir": "build/linux-debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_C_COMPILER": "clang-cl",
-        "CMAKE_CXX_COMPILER": "clang-cl"
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++"
       }
     },
     {
-      "name": "windows-clang-release",
-      "displayName": "Windows Release (clang-cl)",
+      "name": "linux-release",
+      "displayName": "Linux Release",
       "generator": "Ninja",
-      "binaryDir": "build/windows-clang-release",
+      "binaryDir": "build/linux-release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_C_COMPILER": "clang-cl",
-        "CMAKE_CXX_COMPILER": "clang-cl"
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++"
       }
+    },
+    {
+      "name": "macos-debug",
+      "displayName": "macOS Debug",
+      "generator": "Ninja",
+      "binaryDir": "build/macos-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++"
+      }
+    },
+    {
+      "name": "macos-release",
+      "displayName": "macOS Release",
+      "generator": "Ninja",
+      "binaryDir": "build/macos-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "linux-debug",
+      "configurePreset": "linux-debug",
+      "jobs": 0
+    },
+    {
+      "name": "linux-release",
+      "configurePreset": "linux-release",
+      "jobs": 0
+    },
+    {
+      "name": "macos-debug",
+      "configurePreset": "macos-debug",
+      "jobs": 0
+    },
+    {
+      "name": "macos-release",
+      "configurePreset": "macos-release",
+      "jobs": 0
     }
   ]
 }

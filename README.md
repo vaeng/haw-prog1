@@ -1,433 +1,186 @@
-# MyGame Setup Guide (Windows, Ubuntu, macOS)
+# MyGame Setup Guide
 
-This guide is for students starting from zero:
-- no VS Code
-- no compiler
-- no CMake
-- no build tools
+This project requires:
 
-It gives two setup tracks per OS:
-1. Minimal: simplest path to build and run.
-2. Advanced: the full modern workflow (Ninja + CMake presets + Clang + clang-tidy + sccache + VS Code integration).
-
-The project uses:
-- C++20
+- C++23 compiler
 - CMake 3.25+
-- SFML 3
+- Ninja build tool
+- vcpkg (dependency manager for Windows)
+- SFML 3 library
 
-## 1) Quick Choose
+---
 
-If you are new, start with Minimal for your OS.
+## Installation & Building
 
-If you already know C++ tooling (or want the fastest workflow), use Advanced for your OS.
+Below are the recommended steps per platform. All presets follow the pattern `<os>-<type>` (for example `linux-debug`).
 
-## 2) Common Build Commands
+### Windows
 
-From the repository root:
-
-- Configure:
-  - cmake --preset <configure-preset>
-- Build:
-  - cmake --build --preset <build-preset>
-- Run game:
-  - Windows: .\\build\\debug\\game.exe
-  - Linux/macOS: ./build/debug/game
-
-## 3) Windows
-
-### 3A) Windows Minimal (Console Only)
-
-This is the easiest reliable setup from scratch.
-
-Install tools (PowerShell as Administrator):
-
-```powershell
-winget install --id Git.Git -e
-winget install --id Kitware.CMake -e
-winget install --id Microsoft.VisualStudio.2022.BuildTools -e
-```
-
-In Visual Studio Installer, include workload:
-- Desktop development with C++
-
-Install vcpkg and SFML 3 (PowerShell):
-
-```powershell
-git clone https://github.com/microsoft/vcpkg.git $env:USERPROFILE\vcpkg
-$env:VCPKG_ROOT = "$env:USERPROFILE\vcpkg"
-& "$env:VCPKG_ROOT\bootstrap-vcpkg.bat"
-& "$env:VCPKG_ROOT\vcpkg.exe" install sfml:x64-windows
-```
-
-Build using classic CMake command (no presets needed):
-
-```powershell
-cmake -S . -B build/minimal-windows -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
-cmake --build build/minimal-windows --config Debug
-.\build\minimal-windows\Debug\game.exe
-```
-
-### 3B) Windows Minimal (With VS Code)
-
-Install VS Code:
-
-```powershell
-winget install --id Microsoft.VisualStudioCode -e
-```
-
-Open folder in VS Code and install extensions:
-- CMake Tools
-- Clangd
-
-Then run from terminal in VS Code:
-
-```powershell
-cmake -S . -B build/minimal-windows -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
-cmake --build build/minimal-windows --config Debug
-```
-
-### 3C) Windows Advanced (Console)
-
-Install all advanced tools:
+Install required build tools (PowerShell as Administrator):
 
 ```powershell
 winget install --id Git.Git -e
 winget install --id Kitware.CMake -e
 winget install --id LLVM.LLVM -e
 winget install --id Ninja-build.Ninja -e
-winget install --id Mozilla.sccache -e
 winget install --id Microsoft.VisualStudio.2022.BuildTools -e
 ```
 
-Install vcpkg + SFML 3 if not done already:
+In Visual Studio Installer, enable the "Desktop development with C++" workload.
+
+Install vcpkg and SFML 3.0 (PowerShell):
 
 ```powershell
 git clone https://github.com/microsoft/vcpkg.git $env:USERPROFILE\vcpkg
-$env:VCPKG_ROOT = "$env:USERPROFILE\vcpkg"
-& "$env:VCPKG_ROOT\bootstrap-vcpkg.bat"
-& "$env:VCPKG_ROOT\vcpkg.exe" install sfml:x64-windows
+& "$env:USERPROFILE\vcpkg\bootstrap-vcpkg.bat"
+& "$env:USERPROFILE\vcpkg\vcpkg.exe" install "sfml:x64-windows@3.0"
 ```
 
-Use advanced cached preset:
+Important: Windows machines should use a personal `CMakeUserPresets.json` that points to your local vcpkg toolchain. The repository includes `CMakeUserPresets.json.template` — copy this file, update the `CMAKE_TOOLCHAIN_FILE` path (or replace `YourUsername`), and do NOT commit your personal file.
 
 ```powershell
-cmake --preset windows-dev
-cmake --build --preset windows-dev
-.\build\debug\game.exe
+copy CMakeUserPresets.json.template CMakeUserPresets.json
+# edit CMakeUserPresets.json and set CMAKE_TOOLCHAIN_FILE to C:/Users/<you>/vcpkg/scripts/buildsystems/vcpkg.cmake
 ```
 
-### 3D) Windows Advanced (With VS Code)
+Configure and build (after creating your `CMakeUserPresets.json`):
 
-Install VS Code and extensions:
-- CMake Tools
-- Clangd
-- clang-format (optional)
-- CodeLLDB (optional, debugger)
+```powershell
+cmake --preset windows-debug
+cmake --build --preset windows-debug
+.\build\windows-debug\my_game.exe
+```
 
-Open this repository. The user-level VS Code settings can select:
-- cmake.configurePreset = windows-local-dev
-- cmake.buildPreset = windows-local-dev
-- cmake.testPreset = windows-local-dev
+Notes:
 
-Then use CMake Tools buttons:
-- Configure
-- Build
-- Run
+- The repository `CMakePresets.json` intentionally does not contain machine-specific Windows toolchain paths to avoid duplicate preset names. Keep `CMakeUserPresets.json` local and gitignored.
+- The presets expect Ninja as the generator; ensure `Ninja` is installed and on `PATH`.
 
-## 4) Ubuntu Linux
+---
 
-The commands below use Ubuntu/Debian style package names.
+### Linux (Ubuntu/Debian)
 
-### 4A) Ubuntu Minimal (Console Only)
-
-Install tools:
+Install build tools:
 
 ```bash
 sudo apt update
-sudo apt install -y git build-essential cmake
+sudo apt install -y git cmake ninja-build clang
 ```
 
-Install vcpkg and SFML 3:
+Install SFML 3.0:
 
 ```bash
-git clone https://github.com/microsoft/vcpkg.git $HOME/vcpkg
-export VCPKG_ROOT="$HOME/vcpkg"
-$VCPKG_ROOT/bootstrap-vcpkg.sh
-$VCPKG_ROOT/vcpkg install sfml:x64-linux
+sudo apt install -y libsfml-dev
+# or build SFML 3.0 from source: https://github.com/SFML/SFML/releases/tag/3.0
 ```
 
-Build with plain CMake:
+Configure and build:
 
 ```bash
-cmake -S . -B build/minimal-linux -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
-cmake --build build/minimal-linux
-./build/minimal-linux/game
+cmake --preset linux-debug
+cmake --build --preset linux-debug
+./build/linux-debug/my_game
 ```
 
-### 4B) Ubuntu Minimal (With VS Code)
+---
 
-Install VS Code (Snap variant):
+### macOS
 
-```bash
-sudo snap install code --classic
-```
-
-Install extensions in VS Code:
-- CMake Tools
-- Clangd
-
-Build from VS Code terminal using the same minimal commands above.
-
-### 4C) Ubuntu Advanced (Console)
-
-Install advanced tools:
-
-```bash
-sudo apt update
-sudo apt install -y git cmake ninja-build clang clang-tidy lldb
-```
-
-Install sccache:
-
-```bash
-cargo install sccache
-```
-
-Note: cargo comes from Rust toolchain. Install first if needed:
-
-```bash
-curl https://sh.rustup.rs -sSf | sh
-source "$HOME/.cargo/env"
-cargo install sccache
-```
-
-Install vcpkg + SFML 3:
-
-```bash
-git clone https://github.com/microsoft/vcpkg.git $HOME/vcpkg
-export VCPKG_ROOT="$HOME/vcpkg"
-$VCPKG_ROOT/bootstrap-vcpkg.sh
-$VCPKG_ROOT/vcpkg install sfml:x64-linux
-```
-
-Use advanced cached preset:
-
-```bash
-cmake --preset linux-dev
-cmake --build --preset linux-dev
-./build/debug/game
-```
-
-### 4D) Ubuntu Advanced (With VS Code)
-
-Install VS Code and extensions:
-- CMake Tools
-- Clangd
-- CodeLLDB (optional)
-
-In VS Code, select these presets from CMake Tools UI:
-- Configure preset: linux-dev
-- Build preset: linux-dev
-
-Then Configure and Build from the status bar.
-
-## 5) macOS
-
-### 5A) macOS Minimal (Console Only)
-
-Install Xcode Command Line Tools:
-
-```bash
-xcode-select --install
-```
-
-Install Homebrew (if missing):
+If Homebrew is not installed, install it first:
 
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
-Install tools:
+Then install build tools:
 
 ```bash
-brew install git cmake
-```
-
-Install vcpkg + SFML 3:
-
-```bash
-git clone https://github.com/microsoft/vcpkg.git $HOME/vcpkg
-export VCPKG_ROOT="$HOME/vcpkg"
-$VCPKG_ROOT/bootstrap-vcpkg.sh
-$VCPKG_ROOT/vcpkg install sfml:arm64-osx
-```
-
-Build with plain CMake:
-
-```bash
-cmake -S . -B build/minimal-macos -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
-cmake --build build/minimal-macos
-./build/minimal-macos/game
-```
-
-### 5B) macOS Minimal (With VS Code)
-
-Install VS Code:
-
-```bash
-brew install --cask visual-studio-code
-```
-
-Install extensions:
-- CMake Tools
-- Clangd
-
-Build from VS Code terminal using the same minimal commands above.
-
-### 5C) macOS Advanced (Console)
-
-Install advanced tools:
-
-```bash
-xcode-select --install
 brew install git cmake ninja llvm
-brew install --cask visual-studio-code
 ```
 
-Install clang-tidy and sccache:
+Install SFML 3.0 (or build from source if Homebrew doesn't provide the required version):
 
 ```bash
-brew install llvm
-brew install sccache
+brew install sfml
+# or: follow upstream SFML 3.0 build instructions
 ```
 
-Install vcpkg + SFML 3:
+Configure and build:
 
 ```bash
-git clone https://github.com/microsoft/vcpkg.git $HOME/vcpkg
-export VCPKG_ROOT="$HOME/vcpkg"
-$VCPKG_ROOT/bootstrap-vcpkg.sh
-$VCPKG_ROOT/vcpkg install sfml:arm64-osx
+cmake --preset macos-debug
+cmake --build --preset macos-debug
+./build/macos-debug/my_game
 ```
 
-Use advanced cached preset:
+---
+
+## VS Code Setup (Optional)
+
+If you're using VS Code:
+
+1. Install extensions:
+   - **CMake Tools** (Microsoft)
+   - **Clangd** (LLVM)
+
+2. To avoid duplicate IntelliSense diagnostics, set the Microsoft C/C++ extension IntelliSense engine to `Disabled` (optional):
+
+```
+Open Settings -> search "IntelliSense" -> set C_Cpp.intelliSenseEngine = Disabled
+```
+
+---
+
+## CMake Presets
+
+CMake presets are configuration shortcuts that set up the build environment automatically. They are stored in `CMakePresets.json` (version-controlled) and per-user `CMakeUserPresets.json` (local overrides).
+
+**Available presets:**
+
+- `linux-debug` / `linux-release` – Linux
+- `macos-debug` / `macos-release` – macOS
+
+Windows presets live in a per-user `CMakeUserPresets.json` (created from `CMakeUserPresets.json.template`) so each developer can point to their own vcpkg installation. Do not add machine-specific Windows presets to the repository `CMakePresets.json` — CMake will report duplicate preset errors if presets with identical names exist across files.
+
+**Usage:**
 
 ```bash
-cmake --preset macos-dev
-cmake --build --preset macos-dev
-./build/debug/game
+cmake --preset <preset-name>            # Configure (creates/updates build/<preset>)
+cmake --build --preset <preset-name>    # Build
 ```
 
-### 5D) macOS Advanced (With VS Code)
+How they work:
 
-Install extensions:
-- CMake Tools
-- Clangd
-- CodeLLDB (optional)
+- Configure once: run `cmake --preset <name>` once to set up the build directory. Re-run only when dependencies/CMake files change.
+- Build repeatedly: run `cmake --build --preset <name>` for fast incremental builds.
 
-In CMake Tools select:
-- Configure preset: macos-dev
-- Build preset: macos-dev
+---
 
-Then Configure and Build.
+## Windows: CMakeUserPresets.json with vcpkg
 
-## 6) No CMake Fallback (g++ Only)
+Windows users need to create a personal `CMakeUserPresets.json` file (this file should be ignored by Git):
 
-You can compile without CMake/Ninja, but this is not the recommended team workflow once external libraries are involved.
+1. Copy `CMakeUserPresets.json.template` to `CMakeUserPresets.json` in the repository root.
+2. Edit `CMakeUserPresets.json` and set the `CMAKE_TOOLCHAIN_FILE` path to your local vcpkg installation, for example:
 
-Why:
-- CMake handles dependency detection and linker setup for you.
-- With plain g++, each machine must provide manual include and linker flags.
+```json
+"CMAKE_TOOLCHAIN_FILE": "C:/Users/christian/vcpkg/scripts/buildsystems/vcpkg.cmake"
+```
 
-Use this fallback only for emergencies or quick experiments.
+3. Then configure and build using `windows-debug` / `windows-release` presets.
 
-### 6A) Linux/macOS (recommended fallback path)
+---
 
-If SFML is installed and pkg-config metadata is available:
+## Code Quality: clang-tidy and clang-format
+
+**clang-tidy** checks code for issues. **clang-format** automatically reformats code.
+
+Both are available as CMake targets:
 
 ```bash
-g++ -std=c++20 src/main.cpp -o game $(pkg-config --cflags --libs sfml-graphics sfml-window sfml-system sfml-audio)
-./game
+cmake --build --preset <preset> --target format      # Format code
+cmake --build --preset <preset> --target clang-tidy  # Check for issues
 ```
 
-If pkg-config cannot find SFML, install SFML development files correctly first.
-
-### 6B) Windows (possible, but more fragile)
-
-Windows g++ fallback depends on how SFML was installed and where libs are located. A typical MinGW-style command looks like:
-
-```powershell
-g++ -std=c++20 src/main.cpp -o game.exe -IC:/path/to/sfml/include -LC:/path/to/sfml/lib -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio
-.\game.exe
-```
-
-This works only if library naming/ABI/runtime match your compiler setup.
-
-Team recommendation:
-- Use CMake + presets as the standard path.
-- Keep g++-only commands as a last-resort fallback.
-
-## 7) Why Ninja With CMake?
-
-Short version:
-- CMake decides what to build.
-- Ninja executes the build graph very quickly.
-
-Main benefits of Ninja in this project:
-- Faster incremental builds:
-  - Ninja has very low scheduling overhead.
-  - Small changes rebuild quickly.
-- Better default behavior for automation:
-  - Deterministic and script-friendly output.
-  - Works well with CMake presets and CI.
-- Cross-platform consistency:
-  - Same generator and commands on Windows/Linux/macOS.
-  - Fewer "works on my machine" differences.
-- Good fit for clang + sccache:
-  - Ninja dispatches compile steps efficiently.
-  - sccache can reuse cached objects quickly.
-
-Do you need Ninja?
-- No, CMake can generate other build systems.
-- But for this template, Ninja is a strong default for speed and consistency.
-
-## 8) Notes About Caching
-
-- sccache works on Windows, Linux, and macOS.
-- If sccache is missing, use non-sccache presets (same names without -sccache).
-- ccache is also common on Linux/macOS, but this project currently standardizes on sccache presets.
-
-## 9) Troubleshooting
-
-### Error: Could not find toolchain file /scripts/buildsystems/vcpkg.cmake
-
-Reason:
-- VCPKG_ROOT is not set.
-
-Fix:
-- Windows PowerShell:
-  - $env:VCPKG_ROOT = "$env:USERPROFILE\vcpkg"
-- Linux/macOS:
-  - export VCPKG_ROOT="$HOME/vcpkg"
-
-Then configure again.
-
-### Error: CMAKE_MAKE_PROGRAM is not set (Ninja)
-
-Reason:
-- Ninja is not installed, but preset expects Ninja.
-
-Fix:
-- Install Ninja, or use the Minimal commands without presets.
-
-### Error: sfml not found
-
-Reason:
-- SFML dependency not installed in the selected toolchain.
-
-Fix:
-- Install via vcpkg for your OS triplet:
-  - x64-windows
-  - x64-linux
-  - arm64-osx
+Note: `clang-tidy` can be slow; run it in CI or before submitting changes.
 

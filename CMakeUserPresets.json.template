@@ -1,0 +1,43 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "windows-debug",
+      "displayName": "Windows Debug + vcpkg",
+      "generator": "Ninja",
+      "binaryDir": "build/windows-debug",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "C:/Users/YourUsername/vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_TARGET_TRIPLET": "x64-windows",
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_C_COMPILER": "clang-cl",
+        "CMAKE_CXX_COMPILER": "clang-cl"
+      }
+    },
+    {
+      "name": "windows-release",
+      "displayName": "Windows Release + vcpkg",
+      "generator": "Ninja",
+      "binaryDir": "build/windows-release",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "C:/Users/YourUsername/vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_TARGET_TRIPLET": "x64-windows",
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_C_COMPILER": "clang-cl",
+        "CMAKE_CXX_COMPILER": "clang-cl"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "windows-debug",
+      "configurePreset": "windows-debug",
+      "jobs": 0
+    },
+    {
+      "name": "windows-release",
+      "configurePreset": "windows-release",
+      "jobs": 0
+    }
+  ]
+}
