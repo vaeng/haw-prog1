@@ -15,8 +15,7 @@
 #include <optional>
 #include <vector>
 
-auto assignment1(sf::RenderWindow &window, std::vector<sf::FloatRect> &boundingBoxes) -> void
-{
+auto assignment1(sf::RenderWindow &window, std::vector<sf::FloatRect> &boundingBoxes) -> void {
     // A red circle with a green outline
     sf::CircleShape circle(50.f);
     circle.setFillColor(sf::Color::Red);
@@ -61,8 +60,7 @@ auto assignment1(sf::RenderWindow &window, std::vector<sf::FloatRect> &boundingB
 
 auto assignment2(sf::CircleShape octagon, sf::Time elapsed) -> void { return; }
 
-auto startGame() -> void
-{
+auto startGame() -> void {
     // Create a window without titlebar, resize or close buttons and with a size of 800x600 pixels
     // with a white background and set the title to "My first SFML game".
     const auto *TITLE = "My first SFML game";
@@ -91,20 +89,15 @@ auto startGame() -> void
     sf::RenderWindow window(sf::VideoMode({HORIZONTAL_RESOLUTION, VERTICAL_RESOLUTION}), TITLE,
                             sf::Style::None);
     sf::Clock clock;
-    while (window.isOpen())
-    {
-        while (const std::optional event = window.pollEvent())
-        {
-            if (event->is<sf::Event::Closed>())
-            {
+    while (window.isOpen()) {
+        while (const std::optional event = window.pollEvent()) {
+            if (event->is<sf::Event::Closed>()) {
                 window.close();
             }
-            if (event->is<sf::Event::FocusLost>())
-            {
+            if (event->is<sf::Event::FocusLost>()) {
                 isFocused = false;
             }
-            if (event->is<sf::Event::FocusGained>())
-            {
+            if (event->is<sf::Event::FocusGained>()) {
                 isFocused = true;
             }
         }
@@ -117,8 +110,7 @@ auto startGame() -> void
         assignment1(window, boundingBoxes);
 
         // assignment 2:
-        if (isFocused)
-        {
+        if (isFocused) {
             rotatingRect.rotate(sf::degrees(degreesPerSecond * elapsedTime.asSeconds()));
             auto playerBounds = player.getGlobalBounds();
 
@@ -127,25 +119,19 @@ auto startGame() -> void
             auto canMoveRight{true};
             auto canMoveUp{true};
             auto canMoveDown{true};
-            for (const auto otherBox : boundingBoxes)
-            {
-                if (const std::optional intersection = playerBounds.findIntersection(otherBox))
-                {
+            for (const auto otherBox : boundingBoxes) {
+                if (const std::optional intersection = playerBounds.findIntersection(otherBox)) {
                     auto intersectionCenter{intersection.value().getCenter()};
-                    if (intersectionCenter.x < player.getPosition().x)
-                    {
+                    if (intersectionCenter.x < player.getPosition().x) {
                         canMoveLeft = false;
                     }
-                    if (intersectionCenter.x > player.getPosition().x)
-                    {
+                    if (intersectionCenter.x > player.getPosition().x) {
                         canMoveRight = false;
                     }
-                    if (intersectionCenter.y < player.getPosition().y)
-                    {
+                    if (intersectionCenter.y < player.getPosition().y) {
                         canMoveUp = false;
                     }
-                    if (intersectionCenter.y > player.getPosition().y)
-                    {
+                    if (intersectionCenter.y > player.getPosition().y) {
                         canMoveDown = false;
                     }
                 }
@@ -153,20 +139,13 @@ auto startGame() -> void
 
             // movement
             auto distance{playerMovementPerSecond * elapsedTime.asSeconds()};
-            if (canMoveRight && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
-            {
+            if (canMoveRight && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right)) {
                 player.move({distance, 0});
-            }
-            else if (canMoveLeft && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
-            {
+            } else if (canMoveLeft && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left)) {
                 player.move({-distance, 0});
-            }
-            else if (canMoveUp && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))
-            {
+            } else if (canMoveUp && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up)) {
                 player.move({0, -distance});
-            }
-            else if (canMoveDown && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down))
-            {
+            } else if (canMoveDown && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down)) {
                 player.move({0, distance});
             }
         }
@@ -185,8 +164,7 @@ auto startGame() -> void
     }
 }
 
-auto main() -> int
-{
+auto main() -> int {
     startGame();
     return 0;
 }

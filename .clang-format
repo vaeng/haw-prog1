@@ -6,7 +6,6 @@ UseTab: Never
 ContinuationIndentWidth: 4
 # 100 keeps lines readable on split views without forcing excessive wrapping.
 ColumnLimit: 100
-BreakBeforeBraces: Allman
 # Keep include ordering deterministic across platforms/LLVM versions.
 SortIncludes: CaseSensitive
 Standard: Latest
