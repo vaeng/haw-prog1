@@ -33,7 +33,7 @@ Install vcpkg and SFML 3.0 (PowerShell):
 ```powershell
 git clone https://github.com/microsoft/vcpkg.git $env:USERPROFILE\vcpkg
 & "$env:USERPROFILE\vcpkg\bootstrap-vcpkg.bat"
-& "$env:USERPROFILE\vcpkg\vcpkg.exe" install "sfml:x64-windows@3.0"
+& "$env:USERPROFILE\vcpkg\vcpkg.exe" install "sfml:x64-windows"
 ```
 
 Important: Windows machines should use a personal `CMakeUserPresets.json` that points to your local vcpkg toolchain. The repository includes `CMakeUserPresets.json.template` — copy this file, update the `CMAKE_TOOLCHAIN_FILE` path (or replace `YourUsername`), and do NOT commit your personal file.
