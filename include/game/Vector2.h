@@ -2,7 +2,7 @@
 
 class Vector2 {
   public:
-    double x, y;
+    double x{0.0}, y{0.0};
 
     friend auto operator+(Vector2 lhs, const Vector2 &rhs) -> Vector2;
 

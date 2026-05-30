@@ -11,7 +11,7 @@ class GameObject {
   public:
     bool enabled{true};
 
-    Transform transform{};
+    Transform localTransform{};
     auto getWorldTransform() -> Transform;
 
     auto getParent() -> GameObject *;

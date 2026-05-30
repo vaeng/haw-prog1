@@ -56,11 +56,12 @@ auto GameObject::getComponentOfType(const std::type_index &type) -> Component * 
 
 auto GameObject::getWorldTransform() -> Transform {
     if (isRoot()) {
-        return transform;
+        return localTransform;
     }
-    auto parentTransform = getParent()->getWorldTransform();
-    parentTransform.position = parentTransform.position + transform.position;
-    parentTransform.scale = Vector2(parentTransform.scale.x * transform.scale.x,
-                                    parentTransform.scale.y * transform.scale.y);
-    return parentTransform;
+    auto worldTransform = getParent()->getWorldTransform();
+    worldTransform.position = worldTransform.position + localTransform.position;
+    worldTransform.scale = Vector2(worldTransform.scale.x * localTransform.scale.x,
+                                   worldTransform.scale.y * localTransform.scale.y);
+    worldTransform.rotation += localTransform.rotation;
+    return worldTransform;
 }
