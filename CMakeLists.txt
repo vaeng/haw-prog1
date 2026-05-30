@@ -18,24 +18,20 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # ------------------------------------------------------------
 # Game logic library
 # ------------------------------------------------------------
-add_library(game_core)
-
-target_sources(game_core
-    PRIVATE
-    src/game/game.cpp
-    include/game/game.hpp
+add_library(game_core
+    src/game/Game.cpp
+    src/game/GameObject.cpp
+    src/game/Vector2.cpp
+    src/game/RenderComponent.cpp
 )
+
+target_include_directories(game_core PUBLIC include)
+target_compile_features(game_core PUBLIC cxx_std_23)
 
 # Public headers propagate include paths to dependents
 target_include_directories(game_core
     PUBLIC
         include
-)
-
-# Language standard (toolchain aware)
-target_compile_features(game_core
-    PUBLIC
-        cxx_std_23
 )
 
 # ------------------------------------------------------------
@@ -78,6 +74,7 @@ file(GLOB_RECURSE FORMAT_FILES
     ${CMAKE_SOURCE_DIR}/src/*.cpp
     ${CMAKE_SOURCE_DIR}/src/game/*.cpp
     ${CMAKE_SOURCE_DIR}/include/*.hpp
+    ${CMAKE_SOURCE_DIR}/include/*.h
 )
 
 file(GLOB_RECURSE TIDY_FILES
