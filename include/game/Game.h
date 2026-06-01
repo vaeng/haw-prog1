@@ -5,15 +5,23 @@
 
 class Game {
   public:
-    Game(Context &context) : context_(context) {}
+    static auto instance() -> Game & {
+        if (instance_ == nullptr) {
+            instance_ = new Game();
+        }
+        return *instance_;
+    }
+    static void init();
 
-    void handleInput();
-    void update(double deltaTime);
-    void render(double deltaTime);
+    static void handleInput();
+    static void update(float deltaTime);
+    static void render(float deltaTime);
 
-    auto getRoot() -> GameObject &;
+    static auto getRoot() -> GameObject &;
 
   private:
-    Context &context_;
+    Game() = default;
+    static Game *instance_;
+    Context &context_{};
     GameObject root_{};
 };

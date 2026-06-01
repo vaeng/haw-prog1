@@ -5,8 +5,8 @@
 class Transform {
   public:
     Vector2 position{};
-    Vector2 scale{.x = 1.0, .y = 1.0};
-    double rotation{0.0};
+    Vector2 scale{.x = 1.F, .y = 1.F};
+    float rotation{};
 
   private:
 };

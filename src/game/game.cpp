@@ -3,10 +3,10 @@
 #include "game/RenderComponent.h"
 
 void Game::handleInput() {}
-void Game::update(double deltaTime) {}
+void Game::update(float deltaTime) {}
 auto Game::getRoot() -> GameObject & { return root_; }
 
-void renderGameObject(GameObject &gameObject, double deltaTime) {
+void renderGameObject(GameObject &gameObject, float deltaTime) {
     if (!gameObject.enabled) {
         return;
     }
@@ -15,7 +15,7 @@ void renderGameObject(GameObject &gameObject, double deltaTime) {
     for (auto *component : gameObject.getComponents()) {
         if (component->enabled) {
             if (auto *renderComponent = dynamic_cast<RenderComponent *>(component)) {
-                renderComponent->render();
+                renderComponent->render(deltaTime);
             }
         }
     }
@@ -26,7 +26,7 @@ void renderGameObject(GameObject &gameObject, double deltaTime) {
     }
 }
 
-void Game::render(double deltaTime) {
+void Game::render(float deltaTime) {
     // recursivly render all game objects starting from the root
     renderGameObject(getRoot(), deltaTime);
 }
