@@ -1,13 +1,20 @@
 #include "game/RenderComponent.h"
+#include "game/Game.h"
 #include "game/GameObject.h"
 #include <SFML/System/Angle.hpp>
 
 void RenderComponent::render(float deltaTime) {
     auto transform = owner->getWorldTransform();
     _sprite.setPosition(transform.position);
-    _sprite.setRotation(sf::degrees(transform.rotation));
-    _sprite.setScale({transform.scale.x, transform.scale.y});
+    _sprite.setRotation(transform.rotation);
+    _sprite.setScale(transform.scale);
+    _sprite.setTextureRect(_textureRect);
+    Game::instance().getContext()->window->draw(_sprite.getNative());
 }
-void RenderComponent::setTexture(const sf::Texture &texture) { _sprite.setTexture(texture); }
+
+void RenderComponent::setTexture(const std::shared_ptr<sf::Texture> texture) {
+    _texture = texture;
+    _sprite.setTexture(*_texture);
+}
+
 void RenderComponent::setTextureRect(const Rect &rect) { _textureRect = rect; }
-RenderComponent::~RenderComponent() = default;

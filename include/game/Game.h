@@ -2,26 +2,27 @@
 
 #include "Context.h"
 #include "GameObject.h"
+#include <SFML/Window/Event.hpp>
 
 class Game {
   public:
-    static auto instance() -> Game & {
-        if (instance_ == nullptr) {
-            instance_ = new Game();
-        }
-        return *instance_;
-    }
-    static void init();
+    static auto instance() -> Game &;
+    void init(Context *context);
 
-    static void handleInput();
-    static void update(float deltaTime);
-    static void render(float deltaTime);
+    void loadSceneTree(GameObject &&sceneRoot);
 
-    static auto getRoot() -> GameObject &;
+    void start();
+    void handleEvents(float deltaTime);
+    void update(float deltaTime);
+    void render(float deltaTime);
+
+    [[nodiscard]] auto getContext() const -> Context *;
+
+    auto getRoot() -> GameObject &;
 
   private:
     Game() = default;
     static Game *instance_;
-    Context &context_{};
     GameObject root_{};
+    Context *context_{};
 };

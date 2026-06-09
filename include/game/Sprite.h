@@ -1,16 +1,59 @@
+
 #pragma once
 
 #include <SFML/Graphics/Sprite.hpp>
+#include <SFML/System/Angle.hpp>
 #include <game/Vector2.h>
 
-class Sprite : public sf::Sprite {
-  public:
-    Sprite(const sf::Texture &texture) : sf::Sprite(texture) {}
+struct Rect {
+    int left;
+    int top;
+    int width;
+    int height;
+};
 
-    void setPosition(const Vector2 &position) { sf::Sprite::setPosition({position.x, position.y}); }
+class Sprite {
+  public:
+    Sprite() = default;
+
+    void setTexture(const sf::Texture &tex) {
+        _sprite.emplace(tex); // construct Sprite ONLY when texture exists
+    }
+
+    void setTextureRect(const Rect &rect) {
+        if (_sprite) {
+            _sprite->setTextureRect({{rect.left, rect.top}, {rect.width, rect.height}});
+        }
+    }
+
+    void setPosition(const Vector2 &position) {
+        if (_sprite) {
+            _sprite->setPosition({position.x, position.y});
+        }
+    }
 
     auto getPosition() const -> Vector2 {
-        auto pos = sf::Sprite::getPosition();
+        if (!_sprite) {
+            return {.x = 0, .y = 0};
+        }
+        auto pos = _sprite->getPosition();
         return {.x = pos.x, .y = pos.y};
     }
+
+    auto setRotation(float angle) -> void {
+        if (_sprite) {
+            _sprite->setRotation(sf::degrees(angle));
+        }
+    }
+
+    auto setScale(const Vector2 &scale) -> void {
+        if (_sprite) {
+            _sprite->setScale({scale.x, scale.y});
+        }
+    }
+
+    auto getNative() -> sf::Sprite & { return *_sprite; }
+
+  private:
+    std::optional<sf::Sprite> _sprite;
 };
