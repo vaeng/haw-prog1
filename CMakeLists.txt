@@ -36,7 +36,7 @@ target_include_directories(game_core
 
 # game_core uses SFML types in its headers/sources; link SFML to ensure include
 # directories and usage requirements are available when compiling game_core.
-find_package(SFML 3 REQUIRED COMPONENTS Graphics Window System)
+find_package(SFML 3 REQUIRED COMPONENTS Graphics Window System Audio)
 target_link_libraries(game_core
     PRIVATE
         SFML::Graphics
@@ -55,7 +55,7 @@ add_executable(my_game
 # ------------------------------------------------------------
 # SFML 3.0 (vcpkg)
 # ------------------------------------------------------------
-find_package(SFML 3 REQUIRED COMPONENTS Graphics Window System)
+find_package(SFML 3 REQUIRED COMPONENTS Graphics Window System Audio)
 
 target_link_libraries(my_game
     PRIVATE

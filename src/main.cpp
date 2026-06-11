@@ -36,7 +36,7 @@ auto createScene() -> GameObject {
         throw std::runtime_error("Failed to load music");
     }
     auto musicComponent = rick->addComponent<MusicComponent>(music);
-
+    musicComponent.play();
     sceneRoot.addChild(std::move(rick));
 
     return sceneRoot;
