@@ -8,7 +8,7 @@ class GameObject;
 
 class RenderComponent : public Component {
   public:
-    RenderComponent(const std::shared_ptr<sf::Texture> texture) : _texture(texture) {
+    RenderComponent(const std::shared_ptr<sf::Texture> &texture) : _texture(texture) {
         _sprite.setTexture(*_texture);
     }
 

@@ -14,6 +14,7 @@
 
 #include "game/AnimationComponent.h"
 #include "game/Game.h"
+#include "game/MusicComponent.h"
 #include "game/RenderComponent.h"
 
 auto createScene() -> GameObject {
@@ -29,6 +30,12 @@ auto createScene() -> GameObject {
     auto renderComponent = rick->addComponent<RenderComponent>(texture);
 
     rick->addComponent<AnimationComponent>();
+
+    auto music = std::make_shared<sf::Music>();
+    if (!music->openFromFile("assets/audio/Rick Astley - Never Gonna Give You Up.mp3")) {
+        throw std::runtime_error("Failed to load music");
+    }
+    auto musicComponent = rick->addComponent<MusicComponent>(music);
 
     sceneRoot.addChild(std::move(rick));
 

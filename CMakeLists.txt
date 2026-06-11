@@ -42,6 +42,7 @@ target_link_libraries(game_core
         SFML::Graphics
         SFML::Window
         SFML::System
+        SFML::Audio
 )
 
 # ------------------------------------------------------------
@@ -62,6 +63,7 @@ target_link_libraries(my_game
         SFML::Graphics
         SFML::Window
         SFML::System
+        SFML::Audio
 )
 
 # ------------------------------------------------------------
