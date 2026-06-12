@@ -3,15 +3,6 @@
 #include "game/RenderComponent.h"
 #include <SFML/Window/Event.hpp>
 
-Game *Game::instance_ = nullptr;
-
-auto Game::instance() -> Game & {
-    if (instance_ == nullptr) {
-        instance_ = new Game();
-    }
-    return *instance_;
-}
-
 auto Game::init(Context *context) -> void {
     context_ = context;
     root_ = GameObject();
@@ -94,4 +85,7 @@ void Game::render(float deltaTime) {
     context_->window->display();
 }
 
-void Game::loadSceneTree(GameObject &&sceneRoot) { root_ = std::move(sceneRoot); }
+void Game::loadSceneTree(GameObject &&sceneRoot) {
+    root_ = std::move(sceneRoot);
+    root_.setGame(this);
+}

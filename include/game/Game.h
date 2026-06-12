@@ -6,7 +6,6 @@
 
 class Game {
   public:
-    static auto instance() -> Game &;
     void init(Context *context);
 
     void loadSceneTree(GameObject &&sceneRoot);
@@ -21,8 +20,6 @@ class Game {
     auto getRoot() -> GameObject &;
 
   private:
-    Game() = default;
-    static Game *instance_;
     GameObject root_{};
     Context *context_{};
 };

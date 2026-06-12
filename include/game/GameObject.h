@@ -6,21 +6,21 @@
 #include "game/Component.h"
 #include "game/Transform.h"
 
-#include <iostream>
+class Game;
 
 class GameObject {
   public:
     bool enabled{true};
 
     Transform localTransform{};
-    auto getWorldTransform() -> Transform;
+    [[nodiscard]] auto getWorldTransform() -> Transform;
 
     auto getParent() -> GameObject *;
-    auto isRoot() -> bool;
+    [[nodiscard]] auto isRoot() const -> bool;
 
     auto addChild(std::unique_ptr<GameObject> child) -> GameObject &;
 
-    auto hasChildren() -> bool;
+    [[nodiscard]] auto hasChildren() const -> bool;
     auto getChildren() -> std::vector<std::unique_ptr<GameObject>> &;
 
     template <typename T, typename... Args> auto addComponent(Args &&...args) -> T & {
@@ -34,7 +34,7 @@ class GameObject {
         return ref;
     }
 
-    auto hasComponents() -> bool;
+    [[nodiscard]] auto hasComponents() const -> bool;
 
     template <typename T> auto getComponent() -> T * {
         for (auto &component : _components) {
@@ -69,8 +69,23 @@ class GameObject {
         }
     }
 
+    auto getGame() -> Game * {
+        if (_game != nullptr) {
+            return _game;
+        }
+        throw std::runtime_error("GameObject is not attached to a Game");
+    }
+
+    void setGame(Game *game) {
+        _game = game;
+        for (auto &child : _children) {
+            child->setGame(game);
+        }
+    }
+
   private:
-    GameObject *_parent{nullptr};
+    Game *_game{nullptr};
+    GameObject *_parent{nullptr}; // non-owning, set once in addChild, null for root
     std::vector<std::unique_ptr<GameObject>> _children;
     std::vector<std::unique_ptr<Component>> _components;
 };

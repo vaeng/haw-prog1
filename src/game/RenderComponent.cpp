@@ -9,10 +9,10 @@ void RenderComponent::render(float deltaTime) {
     _sprite.setRotation(transform.rotation);
     _sprite.setScale(transform.scale);
     _sprite.setTextureRect(_textureRect);
-    Game::instance().getContext()->window->draw(_sprite.getNative());
+    owner->getGame()->getContext()->window->draw(_sprite.getNative());
 }
 
-void RenderComponent::setTexture(const std::shared_ptr<sf::Texture> texture) {
+void RenderComponent::setTexture(const std::shared_ptr<sf::Texture> &texture) {
     _texture = texture;
     _sprite.setTexture(*_texture);
 }

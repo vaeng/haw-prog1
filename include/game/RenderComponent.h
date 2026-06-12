@@ -12,7 +12,7 @@ class RenderComponent : public Component {
         _sprite.setTexture(*_texture);
     }
 
-    void setTexture(const std::shared_ptr<sf::Texture> texture);
+    void setTexture(const std::shared_ptr<sf::Texture> &texture);
     void setTextureRect(const Rect &rect);
     void render(float deltaTime);
 

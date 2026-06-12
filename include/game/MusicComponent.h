@@ -30,13 +30,13 @@ class MusicComponent : public Component {
         }
     }
 
-    void advance(float seconds) {
+    void setPosition(float seconds) {
         if (_music) {
             _music->setPlayingOffset(sf::seconds(seconds));
         }
     }
 
-    void setPosition(float seconds) {
+    void advance(float seconds) {
         if (_music) {
             _music->setPlayingOffset(_music->getPlayingOffset() + sf::seconds(seconds));
         }

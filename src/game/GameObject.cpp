@@ -3,19 +3,23 @@
 
 auto GameObject::getParent() -> GameObject * { return _parent; }
 
-auto GameObject::isRoot() -> bool { return _parent == nullptr; }
+auto GameObject::isRoot() const -> bool { return _parent == nullptr; }
 
 auto GameObject::addChild(std::unique_ptr<GameObject> child) -> GameObject & {
+    assert(child->_parent == nullptr && "Child already has a parent");
     child->_parent = this;
+    if (_game != nullptr) {
+        child->setGame(_game);
+    }
     _children.push_back(std::move(child));
     return *_children.back();
 }
 
-auto GameObject::hasChildren() -> bool { return !_children.empty(); }
+auto GameObject::hasChildren() const -> bool { return !_children.empty(); }
 
 auto GameObject::getChildren() -> std::vector<std::unique_ptr<GameObject>> & { return _children; }
 
-auto GameObject::hasComponents() -> bool { return !_components.empty(); }
+auto GameObject::hasComponents() const -> bool { return !_components.empty(); }
 
 auto GameObject::getWorldTransform() -> Transform {
     if (isRoot()) {

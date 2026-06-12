@@ -3,8 +3,6 @@
 #include "GameObject.h"
 #include "RenderComponent.h"
 
-#include <iostream>
-
 struct FrameInfo {
     float framesPerSecond;
     int totalFrames;
@@ -22,12 +20,12 @@ struct FrameInfo {
 
 class AnimationComponent : public Component {
   public:
+    AnimationComponent(const FrameInfo &info) : frameInfo(info) {}
     void start() override {
         render = owner->getComponent<RenderComponent>();
         if (render == nullptr) {
             throw std::runtime_error("AnimationComponent requires a RenderComponent");
         }
-        std::cout << "Starting AnimationComponent \n";
     }
 
     void update(float dt) override {
@@ -35,18 +33,6 @@ class AnimationComponent : public Component {
             return;
         }
         timeSinceLastFrame += dt;
-        auto frameInfo = FrameInfo{.framesPerSecond = 20.F,
-                                   .totalFrames = 43,
-                                   .left = 0,
-                                   .top = 0,
-                                   .width = 498,
-                                   .height = 374,
-                                   .verticalOffset = 2,
-                                   .horizontalOffset = 2,
-                                   .horizontalFrameCount = 5,
-                                   .verticalFrameCount = 9,
-                                   .horizontalPadding = 4,
-                                   .verticalPadding = 4};
 
         if (timeSinceLastFrame >= 1.0f / frameInfo.framesPerSecond) {
             currentFrame = (currentFrame + 1) % (frameInfo.totalFrames);
@@ -62,8 +48,12 @@ class AnimationComponent : public Component {
             {.left = left, .top = top, .width = frameInfo.width, .height = frameInfo.height});
     }
 
+    [[nodiscard]] auto getFrameInfo() const -> FrameInfo { return frameInfo; }
+    auto setFrameInfo(const FrameInfo &info) { frameInfo = info; }
+
   private:
     RenderComponent *render{nullptr};
+    FrameInfo frameInfo{};
     int currentFrame{};
     float timeSinceLastFrame{};
 };

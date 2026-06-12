@@ -1,16 +1,4 @@
 #include <SFML/Graphics.hpp>
-#include <SFML/Graphics/CircleShape.hpp>
-#include <SFML/Graphics/Color.hpp>
-#include <SFML/Graphics/ConvexShape.hpp>
-#include <SFML/Graphics/Rect.hpp>
-#include <SFML/Graphics/RectangleShape.hpp>
-#include <SFML/Graphics/RenderWindow.hpp>
-#include <SFML/Graphics/Texture.hpp>
-#include <SFML/System/Angle.hpp>
-#include <SFML/Window/Keyboard.hpp>
-#include <SFML/Window/Mouse.hpp>
-#include <SFML/Window/Window.hpp>
-#include <SFML/Window/WindowEnums.hpp>
 
 #include "game/AnimationComponent.h"
 #include "game/Game.h"
@@ -28,8 +16,19 @@ auto createScene() -> GameObject {
     }
 
     auto renderComponent = rick->addComponent<RenderComponent>(texture);
-
-    rick->addComponent<AnimationComponent>();
+    auto frameInfo = FrameInfo{.framesPerSecond = 20.F,
+                               .totalFrames = 43,
+                               .left = 0,
+                               .top = 0,
+                               .width = 498,
+                               .height = 374,
+                               .verticalOffset = 2,
+                               .horizontalOffset = 2,
+                               .horizontalFrameCount = 5,
+                               .verticalFrameCount = 9,
+                               .horizontalPadding = 4,
+                               .verticalPadding = 4};
+    rick->addComponent<AnimationComponent>(frameInfo);
 
     auto music = std::make_shared<sf::Music>();
     if (!music->openFromFile("assets/audio/Rick Astley - Never Gonna Give You Up.mp3")) {
@@ -49,7 +48,7 @@ auto startGame() -> void {
     sf::RenderWindow window(sf::VideoMode({HORIZONTAL_RESOLUTION, VERTICAL_RESOLUTION}), TITLE,
                             sf::Style::Titlebar | sf::Style::Close);
 
-    auto &game = Game::instance();
+    auto game = Game{};
     Context context{.window = &window};
     game.init(&context);
     auto scene = createScene();

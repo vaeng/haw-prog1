@@ -25,7 +25,6 @@ add_library(game_core
     src/game/RenderComponent.cpp
 )
 
-target_include_directories(game_core PUBLIC include)
 target_compile_features(game_core PUBLIC cxx_std_23)
 
 # Public headers propagate include paths to dependents
@@ -55,8 +54,6 @@ add_executable(my_game
 # ------------------------------------------------------------
 # SFML 3.0 (vcpkg)
 # ------------------------------------------------------------
-find_package(SFML 3 REQUIRED COMPONENTS Graphics Window System Audio)
-
 target_link_libraries(my_game
     PRIVATE
         game_core
