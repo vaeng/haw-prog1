@@ -71,8 +71,7 @@ Install SFML 3.0:
 
 ```bash
 sudo apt install -y libsfml-dev
-# or build SFML 3.0 from source: https://github.com/SFML/SFML/releases/tag/3.0
-```
+# or build SFML 3.0 from source: https://github.com/SFML/SFML/releases/tag/3.0.2
 
 Configure and build:
 
