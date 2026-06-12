@@ -1,8 +1,11 @@
 #pragma once
 
-#include "game/Component.h"
 #include <SFML/Audio/Music.hpp>
 #include <memory>
+
+#include "engine/Component.h"
+
+namespace engine {
 
 class GameObject;
 
@@ -45,3 +48,4 @@ class MusicComponent : public Component {
   private:
     std::shared_ptr<sf::Music> _music;
 };
+} // namespace engine

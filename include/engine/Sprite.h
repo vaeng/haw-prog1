@@ -3,7 +3,10 @@
 
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/System/Angle.hpp>
-#include <game/Vector2.h>
+
+#include "engine/Vector2.h"
+
+namespace engine {
 
 struct Rect {
     int left;
@@ -57,3 +60,4 @@ class Sprite {
   private:
     std::optional<sf::Sprite> _sprite;
 };
+} // namespace engine

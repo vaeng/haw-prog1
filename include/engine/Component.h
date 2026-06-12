@@ -3,6 +3,8 @@
 #include <SFML/Window/Event.hpp>
 #include <optional>
 
+namespace engine {
+
 class GameObject;
 
 class Component {
@@ -16,3 +18,4 @@ class Component {
     bool enabled{true};
     GameObject *owner{nullptr};
 };
+} // namespace engine

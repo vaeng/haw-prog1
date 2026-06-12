@@ -1,5 +1,7 @@
 #pragma once
 
+namespace engine {
+
 class Vector2 {
   public:
     float x{}, y{};
@@ -14,3 +16,4 @@ class Vector2 {
 
   private:
 };
+} // namespace engine

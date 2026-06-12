@@ -1,9 +1,12 @@
-#include "game/Game.h"
-#include "game/Component.h"
-#include "game/RenderComponent.h"
 #include <SFML/Window/Event.hpp>
 
-auto Game::init(Context *context) -> void {
+#include "engine/Component.h"
+#include "engine/Core.h"
+#include "engine/RenderComponent.h"
+
+namespace engine {
+
+auto Core::init(Context *context) -> void {
     context_ = context;
     root_ = GameObject();
 }
@@ -15,7 +18,7 @@ void startGameObject(GameObject &gameObject) {
     }
 }
 
-void Game::start() { startGameObject(root_); }
+void Core::start() { startGameObject(root_); }
 
 void handleEventComponents(GameObject &gameObject, sf::Event event, float deltaTime) {
     if (!gameObject.enabled) {
@@ -31,7 +34,7 @@ void handleEventComponents(GameObject &gameObject, sf::Event event, float deltaT
     }
 }
 
-void Game::handleEvents(float deltaTime) {
+void Core::handleEvents(float deltaTime) {
     while (const std::optional event = context_->window->pollEvent()) {
         if (event->is<sf::Event::Closed>()) {
             context_->window->close();
@@ -56,8 +59,8 @@ void updateGameObject(GameObject &gameObject, float deltaTime) {
     }
 }
 
-void Game::update(float deltaTime) { updateGameObject(root_, deltaTime); }
-auto Game::getRoot() -> GameObject & { return root_; }
+void Core::update(float deltaTime) { updateGameObject(root_, deltaTime); }
+auto Core::getRoot() -> GameObject & { return root_; }
 
 void renderGameObject(GameObject &gameObject, float deltaTime) {
     if (!gameObject.enabled) {
@@ -76,16 +79,17 @@ void renderGameObject(GameObject &gameObject, float deltaTime) {
     }
 }
 
-auto Game::getContext() const -> Context * { return context_; }
+auto Core::getContext() const -> Context * { return context_; }
 
-void Game::render(float deltaTime) {
+void Core::render(float deltaTime) {
     context_->window->clear();
     // Recursively render all game objects starting from the root
     renderGameObject(getRoot(), deltaTime);
     context_->window->display();
 }
 
-void Game::loadSceneTree(GameObject &&sceneRoot) {
+void Core::loadSceneTree(GameObject &&sceneRoot) {
     root_ = std::move(sceneRoot);
-    root_.setGame(this);
+    root_.setCore(this);
 }
+} // namespace engine

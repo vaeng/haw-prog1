@@ -10,6 +10,7 @@ Checks: >
 WarningsAsErrors: ''
 # Analyze only project headers under src/include to reduce third-party noise.
 HeaderFilterRegex: 'include/|game/'
+HeaderFilterRegex: 'include/|engine/'
 
 # Reuse .clang-format for tidy-generated fixes and keep terminal output plain.
 FormatStyle: file

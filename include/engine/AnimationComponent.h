@@ -1,7 +1,10 @@
 #pragma once
-#include "Component.h"
-#include "GameObject.h"
-#include "RenderComponent.h"
+
+#include "engine/Component.h"
+#include "engine/GameObject.h"
+#include "engine/RenderComponent.h"
+
+namespace engine {
 
 struct FrameInfo {
     float framesPerSecond;
@@ -57,3 +60,4 @@ class AnimationComponent : public Component {
     int currentFrame{};
     float timeSinceLastFrame{};
 };
+} // namespace engine

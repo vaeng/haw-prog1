@@ -1,10 +1,13 @@
 #pragma once
 
-#include "Context.h"
-#include "GameObject.h"
 #include <SFML/Window/Event.hpp>
 
-class Game {
+#include "Context.h"
+#include "GameObject.h"
+
+namespace engine {
+
+class Core {
   public:
     void init(Context *context);
 
@@ -23,3 +26,4 @@ class Game {
     GameObject root_{};
     Context *context_{};
 };
+} // namespace engine

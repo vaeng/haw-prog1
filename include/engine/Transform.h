@@ -1,6 +1,8 @@
 #pragma once
 
-#include "Vector2.h"
+#include "engine/Vector2.h"
+
+namespace engine {
 
 class Transform {
   public:
@@ -10,3 +12,4 @@ class Transform {
 
   private:
 };
+} // namespace engine

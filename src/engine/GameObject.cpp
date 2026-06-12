@@ -1,5 +1,7 @@
-#include "game/GameObject.h"
-#include "game/Component.h"
+#include "engine/GameObject.h"
+#include "engine/Component.h"
+
+namespace engine {
 
 auto GameObject::getParent() -> GameObject * { return _parent; }
 
@@ -8,8 +10,8 @@ auto GameObject::isRoot() const -> bool { return _parent == nullptr; }
 auto GameObject::addChild(std::unique_ptr<GameObject> child) -> GameObject & {
     assert(child->_parent == nullptr && "Child already has a parent");
     child->_parent = this;
-    if (_game != nullptr) {
-        child->setGame(_game);
+    if (_core != nullptr) {
+        child->setCore(_core);
     }
     _children.push_back(std::move(child));
     return *_children.back();
@@ -32,3 +34,4 @@ auto GameObject::getWorldTransform() -> Transform {
     worldTransform.rotation += localTransform.rotation;
     return worldTransform;
 }
+} // namespace engine

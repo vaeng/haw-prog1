@@ -16,27 +16,27 @@ project(
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # ------------------------------------------------------------
-# Game logic library
+# Engine logic library
 # ------------------------------------------------------------
-add_library(game_core
-    src/game/Game.cpp
-    src/game/GameObject.cpp
-    src/game/Vector2.cpp
-    src/game/RenderComponent.cpp
+add_library(engine
+    src/engine/Core.cpp
+    src/engine/GameObject.cpp
+    src/engine/Vector2.cpp
+    src/engine/RenderComponent.cpp
 )
 
-target_compile_features(game_core PUBLIC cxx_std_23)
+target_compile_features(engine PUBLIC cxx_std_23)
 
 # Public headers propagate include paths to dependents
-target_include_directories(game_core
+target_include_directories(engine
     PUBLIC
         include
 )
 
-# game_core uses SFML types in its headers/sources; link SFML to ensure include
-# directories and usage requirements are available when compiling game_core.
+# engine uses SFML types in its headers/sources; link SFML to ensure include
+# directories and usage requirements are available when compiling engine.
 find_package(SFML 3 REQUIRED COMPONENTS Graphics Window System Audio)
-target_link_libraries(game_core
+target_link_libraries(engine
     PRIVATE
         SFML::Graphics
         SFML::Window
@@ -56,7 +56,7 @@ add_executable(my_game
 # ------------------------------------------------------------
 target_link_libraries(my_game
     PRIVATE
-        game_core
+        engine
         SFML::Graphics
         SFML::Window
         SFML::System
@@ -82,6 +82,7 @@ file(GLOB_RECURSE FORMAT_FILES
     CONFIGURE_DEPENDS
     ${CMAKE_SOURCE_DIR}/src/*.cpp
     ${CMAKE_SOURCE_DIR}/src/game/*.cpp
+    ${CMAKE_SOURCE_DIR}/src/engine/*.cpp
     ${CMAKE_SOURCE_DIR}/include/*.hpp
     ${CMAKE_SOURCE_DIR}/include/*.h
 )
@@ -90,6 +91,7 @@ file(GLOB_RECURSE TIDY_FILES
     CONFIGURE_DEPENDS
     ${CMAKE_SOURCE_DIR}/src/*.cpp
     ${CMAKE_SOURCE_DIR}/src/game/*.cpp
+    ${CMAKE_SOURCE_DIR}/src/engine/*.cpp
 )
 
 # ------------------------------------------------------------

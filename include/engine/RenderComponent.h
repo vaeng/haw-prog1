@@ -1,8 +1,11 @@
 #pragma once
 
-#include "game/Component.h"
-#include "game/Sprite.h"
 #include <memory>
+
+#include "engine/Component.h"
+#include "engine/Sprite.h"
+
+namespace engine {
 
 class GameObject;
 
@@ -21,3 +24,4 @@ class RenderComponent : public Component {
     Sprite _sprite;
     Rect _textureRect;
 };
+} // namespace engine

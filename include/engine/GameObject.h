@@ -3,10 +3,12 @@
 #include <memory>
 #include <vector>
 
-#include "game/Component.h"
-#include "game/Transform.h"
+#include "engine/Component.h"
+#include "engine/Transform.h"
 
-class Game;
+namespace engine {
+
+class Core;
 
 class GameObject {
   public:
@@ -69,23 +71,24 @@ class GameObject {
         }
     }
 
-    auto getGame() -> Game * {
-        if (_game != nullptr) {
-            return _game;
+    auto getCore() -> Core * {
+        if (_core != nullptr) {
+            return _core;
         }
-        throw std::runtime_error("GameObject is not attached to a Game");
+        throw std::runtime_error("GameObject is not attached to a Core");
     }
 
-    void setGame(Game *game) {
-        _game = game;
+    void setCore(Core *core) {
+        _core = core;
         for (auto &child : _children) {
-            child->setGame(game);
+            child->setCore(core);
         }
     }
 
   private:
-    Game *_game{nullptr};
+    Core *_core{nullptr};
     GameObject *_parent{nullptr}; // non-owning, set once in addChild, null for root
     std::vector<std::unique_ptr<GameObject>> _children;
     std::vector<std::unique_ptr<Component>> _components;
 };
+} // namespace engine
