@@ -42,25 +42,16 @@ auto createScene() -> engine::GameObject {
 }
 
 auto startGame() -> void {
-    const auto *TITLE = "Sontorini Clone";
-    const auto HORIZONTAL_RESOLUTION = 800U;
-    const auto VERTICAL_RESOLUTION = 600U;
-    sf::RenderWindow window(sf::VideoMode({HORIZONTAL_RESOLUTION, VERTICAL_RESOLUTION}), TITLE,
-                            sf::Style::Titlebar | sf::Style::Close);
-
-    auto core = engine::Core{};
-    engine::Context context{.window = &window};
-    core.init(&context);
+    auto const config = engine::WindowConfig{
+        .title = "Sontorini Clone",
+        .width = 800,
+        .height = 600,
+    };
+    auto core = engine::Core{config};
     auto scene = createScene();
-    core.loadSceneTree(std::move(scene));
+    core.loadScene(std::move(scene));
     core.start();
-    sf::Clock clock;
-    while (window.isOpen()) {
-        auto deltaTime = clock.restart().asSeconds();
-        core.handleEvents(deltaTime);
-        core.update(deltaTime);
-        core.render(deltaTime);
-    }
+    core.run();
 }
 
 auto main() -> int {

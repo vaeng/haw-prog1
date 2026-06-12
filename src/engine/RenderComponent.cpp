@@ -12,7 +12,7 @@ void RenderComponent::render(float deltaTime) {
     _sprite.setRotation(transform.rotation);
     _sprite.setScale(transform.scale);
     _sprite.setTextureRect(_textureRect);
-    owner->getCore()->getContext()->window->draw(_sprite.getNative());
+    owner->getCore()->getContext().window->draw(_sprite.getNative());
 }
 
 void RenderComponent::setTexture(const std::shared_ptr<sf::Texture> &texture) {
