@@ -8,7 +8,7 @@ namespace engine {
 
 auto Core::run() -> void {
     sf::Clock clock;
-    while (context_.window->isOpen()) {
+    while (_context.window->isOpen()) {
         auto deltaTime = clock.restart().asSeconds();
         handleEvents(deltaTime);
         update(deltaTime);
@@ -23,7 +23,7 @@ void startGameObject(GameObject &gameObject) {
     }
 }
 
-void Core::start() { startGameObject(root_); }
+void Core::start() { startGameObject(_root); }
 
 void handleEventComponents(GameObject &gameObject, sf::Event event, float deltaTime) {
     if (!gameObject.enabled) {
@@ -40,13 +40,13 @@ void handleEventComponents(GameObject &gameObject, sf::Event event, float deltaT
 }
 
 void Core::handleEvents(float deltaTime) {
-    while (const std::optional event = context_.window->pollEvent()) {
+    while (const std::optional event = _context.window->pollEvent()) {
         if (event->is<sf::Event::Closed>()) {
-            context_.window->close();
+            _context.window->close();
         } else if (event == std::nullopt) {
             continue;
         }
-        handleEventComponents(root_, event.value(), deltaTime);
+        handleEventComponents(_root, event.value(), deltaTime);
     }
 }
 
@@ -64,8 +64,8 @@ void updateGameObject(GameObject &gameObject, float deltaTime) {
     }
 }
 
-void Core::update(float deltaTime) { updateGameObject(root_, deltaTime); }
-auto Core::getRoot() -> GameObject & { return root_; }
+void Core::update(float deltaTime) { updateGameObject(_root, deltaTime); }
+auto Core::getRoot() -> GameObject & { return _root; }
 
 void renderGameObject(GameObject &gameObject, float deltaTime) {
     if (!gameObject.enabled) {
@@ -84,17 +84,17 @@ void renderGameObject(GameObject &gameObject, float deltaTime) {
     }
 }
 
-auto Core::getContext() const -> const Context & { return context_; }
+auto Core::getContext() const -> const Context & { return _context; }
 
 void Core::render(float deltaTime) {
-    context_.window->clear();
+    _context.window->clear();
     // Recursively render all game objects starting from the root
     renderGameObject(getRoot(), deltaTime);
-    context_.window->display();
+    _context.window->display();
 }
 
 void Core::loadScene(GameObject &&sceneRoot) {
-    root_ = std::move(sceneRoot);
-    root_.setCore(this);
+    _root = std::move(sceneRoot);
+    _root.setCore(this);
 }
 } // namespace engine

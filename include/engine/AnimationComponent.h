@@ -23,41 +23,41 @@ struct FrameInfo {
 
 class AnimationComponent : public Component {
   public:
-    AnimationComponent(const FrameInfo &info) : frameInfo(info) {}
+    AnimationComponent(const FrameInfo &info) : _currentFrame(0), _frameInfo(info) {}
     void start() override {
-        render = owner->getComponent<RenderComponent>();
-        if (render == nullptr) {
+        _render = owner->getComponent<RenderComponent>();
+        if (_render == nullptr) {
             throw std::runtime_error("AnimationComponent requires a RenderComponent");
         }
     }
 
     void update(float dt) override {
-        if (render == nullptr) {
+        if (_render == nullptr) {
             return;
         }
-        timeSinceLastFrame += dt;
+        _timeSinceLastFrame += dt;
 
-        if (timeSinceLastFrame >= 1.0f / frameInfo.framesPerSecond) {
-            currentFrame = (currentFrame + 1) % (frameInfo.totalFrames);
-            timeSinceLastFrame = 0;
+        if (_timeSinceLastFrame >= 1.0f / _frameInfo.framesPerSecond) {
+            _currentFrame = (_currentFrame + 1) % (_frameInfo.totalFrames);
+            _timeSinceLastFrame = 0;
         }
-        int left = (currentFrame % frameInfo.horizontalFrameCount) *
-                       (frameInfo.width + frameInfo.horizontalPadding) +
-                   frameInfo.horizontalOffset;
-        int top = (currentFrame / frameInfo.horizontalFrameCount) *
-                      (frameInfo.height + frameInfo.verticalPadding) +
-                  frameInfo.verticalOffset;
-        render->setTextureRect(
-            {.left = left, .top = top, .width = frameInfo.width, .height = frameInfo.height});
+        int left = (_currentFrame % _frameInfo.horizontalFrameCount) *
+                       (_frameInfo.width + _frameInfo.horizontalPadding) +
+                   _frameInfo.horizontalOffset;
+        int top = (_currentFrame / _frameInfo.horizontalFrameCount) *
+                      (_frameInfo.height + _frameInfo.verticalPadding) +
+                  _frameInfo.verticalOffset;
+        _render->setTextureRect(
+            {.left = left, .top = top, .width = _frameInfo.width, .height = _frameInfo.height});
     }
 
-    [[nodiscard]] auto getFrameInfo() const -> FrameInfo { return frameInfo; }
-    auto setFrameInfo(const FrameInfo &info) { frameInfo = info; }
+    [[nodiscard]] auto getFrameInfo() const -> FrameInfo { return _frameInfo; }
+    auto setFrameInfo(const FrameInfo &info) { _frameInfo = info; }
 
   private:
-    RenderComponent *render{nullptr};
-    FrameInfo frameInfo{};
-    int currentFrame{};
-    float timeSinceLastFrame{};
+    RenderComponent *_render{nullptr};
+    FrameInfo _frameInfo{};
+    int _currentFrame{};
+    float _timeSinceLastFrame{};
 };
 } // namespace engine

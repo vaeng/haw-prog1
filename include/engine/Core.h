@@ -17,9 +17,9 @@ struct WindowConfig {
 class Core {
   public:
     Core(WindowConfig config)
-        : window_(sf::VideoMode({config.width, config.height}), config.title,
+        : _window(sf::VideoMode({config.width, config.height}), config.title,
                   sf::Style::Titlebar | sf::Style::Close),
-          context_{.window = &window_} {}
+          _context{.window = &_window} {}
     void loadScene(GameObject &&sceneRoot);
 
     void start();
@@ -33,8 +33,8 @@ class Core {
     auto getRoot() -> GameObject &;
 
   private:
-    GameObject root_{};
-    sf::RenderWindow window_;
-    Context context_{};
+    GameObject _root{};
+    sf::RenderWindow _window;
+    Context _context{};
 };
 } // namespace engine

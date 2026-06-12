@@ -4,12 +4,9 @@
 
 namespace engine {
 
-class Transform {
-  public:
+struct Transform {
     Vector2 position{};
     Vector2 scale{.x = 1.F, .y = 1.F};
     float rotation{};
-
-  private:
 };
 } // namespace engine
