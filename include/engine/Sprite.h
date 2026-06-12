@@ -4,8 +4,8 @@
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/System/Angle.hpp>
 
+#include "engine/Texture.h"
 #include "engine/Vector2.h"
-
 namespace engine {
 
 struct Rect {
@@ -19,8 +19,8 @@ class Sprite {
   public:
     Sprite() = default;
 
-    void setTexture(const sf::Texture &tex) {
-        _sprite.emplace(tex); // construct Sprite ONLY when texture exists
+    void setTexture(const Texture &tex) {
+        _sprite.emplace(tex.getNative()); // construct Sprite ONLY when texture exists
     }
 
     void setTextureRect(const Rect &rect) {

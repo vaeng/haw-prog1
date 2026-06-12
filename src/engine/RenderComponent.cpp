@@ -15,7 +15,7 @@ void RenderComponent::render(float deltaTime) {
     owner->getCore()->getContext().window->draw(_sprite.getNative());
 }
 
-void RenderComponent::setTexture(const std::shared_ptr<sf::Texture> &texture) {
+void RenderComponent::setTexture(const std::shared_ptr<Texture> &texture) {
     _texture = texture;
     _sprite.setTexture(*_texture);
 }
