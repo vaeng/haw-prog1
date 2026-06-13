@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include "engine/Component.h"
 #include "engine/GameObject.h"
 #include "engine/RenderComponent.h"
@@ -58,6 +60,13 @@ class AnimationComponent : public Component {
 
     [[nodiscard]] auto getFrameInfo() const -> FrameInfo { return _frameInfo; }
     auto setFrameInfo(const FrameInfo &info) { _frameInfo = info; }
+
+    [[nodiscard]] std::unique_ptr<Component> clone() const override {
+        auto cloned = std::make_unique<AnimationComponent>(_frameInfo);
+        cloned->_currentFrame = _currentFrame;
+        cloned->_timeSinceLastFrame = _timeSinceLastFrame;
+        return cloned;
+    }
 
   private:
     RenderComponent *_render{nullptr};

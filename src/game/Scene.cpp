@@ -17,8 +17,6 @@ auto createScene() -> engine::GameObject {
     auto renderComponent = rick->addComponent<engine::RenderComponent>(texture);
     auto frameInfo = engine::FrameInfo{.framesPerSecond = 20.F,
                                        .totalFrames = 43,
-                                       .left = 0,
-                                       .top = 0,
                                        .width = 498,
                                        .height = 374,
                                        .verticalOffset = 2,

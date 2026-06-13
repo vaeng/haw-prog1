@@ -22,4 +22,13 @@ void RenderComponent::setTexture(const std::shared_ptr<Texture> &texture) {
 
 void RenderComponent::setTextureRect(const Rect &rect) { _textureRect = rect; }
 
+std::unique_ptr<Component> RenderComponent::clone() const {
+    {
+        auto cloned = std::make_unique<RenderComponent>(_texture);
+        cloned->_sprite = _sprite;
+        cloned->_textureRect = _textureRect;
+        return cloned;
+    }
+}
+
 } // namespace engine

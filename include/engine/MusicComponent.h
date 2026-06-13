@@ -47,6 +47,15 @@ class MusicComponent : public Component {
         }
     }
 
+    /// Gets a clone of the current MusicComponent, with the same music-resource
+    ///
+    /// Note: Both object will control the resource with playing, pausing, and stopping it, so they
+    /// would affect each other.
+    [[nodiscard]] std::unique_ptr<Component> clone() const override {
+        auto cloned = std::make_unique<MusicComponent>(_music);
+        return cloned;
+    }
+
   private:
     std::shared_ptr<Music> _music;
 };

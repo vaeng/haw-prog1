@@ -139,6 +139,27 @@ class GameObject {
         }
     }
 
+    /// Deep-clones this GameObject, its components, and its children.
+    ///
+    /// The clone is detached — it has no parent, no Core, and components have not
+    /// been started. Call setCore() then startComponents() before use.
+    auto clone() -> std::unique_ptr<GameObject> {
+        auto cloned = std::make_unique<GameObject>();
+        cloned->enabled = enabled;
+        cloned->localTransform = localTransform;
+        for (const auto &component : _components) {
+            // This requires that all components have a copy constructor, which is a reasonable
+            // requirement. If a component has pointers or other non-trivial state, it should handle
+            // copying that state in its copy constructor.
+            cloned->_components.push_back(component->clone());
+            cloned->_components.back()->owner = cloned.get();
+        }
+        for (const auto &child : _children) {
+            cloned->addChild(child->clone());
+        }
+        return cloned;
+    }
+
   private:
     Core *_core{nullptr};
     GameObject *_parent{

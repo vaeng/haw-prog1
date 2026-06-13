@@ -19,6 +19,7 @@ class RenderComponent : public Component {
     void setTexture(const std::shared_ptr<Texture> &texture);
     void setTextureRect(const Rect &rect);
     void render(float deltaTime);
+    [[nodiscard]] std::unique_ptr<Component> clone() const override;
 
   private:
     std::shared_ptr<Texture> _texture;
