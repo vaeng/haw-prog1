@@ -2,13 +2,6 @@
 
 #include <SFML/Graphics.hpp>
 
-/*
-    auto texture = std::make_shared<sf::Texture>();
-    if (!texture->loadFromFile("assets/textures/rick.png")) {
-        throw std::runtime_error("Failed to load texture");
-    }
-*/
-
 namespace engine {
 
 class Texture {

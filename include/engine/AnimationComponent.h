@@ -6,19 +6,24 @@
 
 namespace engine {
 
+/// Describes a frame rectangle on a sprite sheet.
+///
+/// The animation reads frames left-to-right, then top-to-bottom.
+/// Padding values separate adjacent frames on the sheet.
 struct FrameInfo {
-    float framesPerSecond;
-    int totalFrames;
-    int left;
-    int top;
-    int width;
-    int height;
-    int verticalOffset;
-    int horizontalOffset;
-    int horizontalFrameCount;
-    int verticalFrameCount;
-    int horizontalPadding;
-    int verticalPadding;
+    float framesPerSecond; /// How many frames to display per second
+    int totalFrames; /// Total number of frames in the animation, assuming all rows except possibly
+                     /// the last one are full
+    int width;       /// Width of each frame in pixels
+    int height;      /// Height of each frame in pixels
+    int verticalOffset;   /// Vertical position of the top left corner of the first frame in the
+                          /// animation sheet
+    int horizontalOffset; /// Horizontal position of the top left corner of the first frame in the
+                          /// animation sheet
+    int horizontalFrameCount; /// Number of frames in each row
+    int verticalFrameCount;   /// Number of rows in the animation sheet
+    int horizontalPadding;    /// Padding between frames horizontally
+    int verticalPadding;      /// Padding between frames vertically
 };
 
 class AnimationComponent : public Component {

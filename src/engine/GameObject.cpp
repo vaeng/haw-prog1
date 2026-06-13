@@ -8,7 +8,9 @@ auto GameObject::getParent() -> GameObject * { return _parent; }
 auto GameObject::isRoot() const -> bool { return _parent == nullptr; }
 
 auto GameObject::addChild(std::unique_ptr<GameObject> child) -> GameObject & {
-    assert(child->_parent == nullptr && "Child already has a parent");
+    if (child->_parent != nullptr) {
+        throw std::runtime_error("Child GameObject is already owned by another GameObject");
+    }
     child->_parent = this;
     if (_core != nullptr) {
         child->setCore(_core);
