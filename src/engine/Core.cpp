@@ -86,10 +86,50 @@ void renderGameObject(GameObject &gameObject, float deltaTime) {
 
 auto Core::getContext() const -> const Context & { return _context; }
 
+std::vector<std::tuple<int, int, RenderComponent *>> collectRenderComponents(GameObject *root) {
+    std::vector<std::tuple<int, int, RenderComponent *>> renderComponents;
+
+    // Depth-first traversal of the scene graph
+    std::vector<GameObject *> stack{root};
+    while (!stack.empty()) {
+        GameObject *current = stack.back();
+        stack.pop_back();
+
+        if (current != nullptr && !current->enabled) {
+            continue;
+        }
+
+        // Check if the current GameObject has a RenderComponent
+        if (auto *renderComponent = current->getComponent<RenderComponent>()) {
+            if (renderComponent->enabled) {
+                renderComponents.emplace_back(renderComponent->layer, renderComponent->zIndex,
+                                              renderComponent);
+            }
+        }
+
+        // Add children to the stack
+        for (auto &child : current->getChildren()) {
+            stack.push_back(child.get());
+        }
+    }
+    return renderComponents;
+};
+
 void Core::render(float deltaTime) {
     _context.window->clear();
-    // Recursively render all game objects starting from the root
-    renderGameObject(getRoot(), deltaTime);
+    auto renderComponents = collectRenderComponents(&getRoot());
+    std::stable_sort(renderComponents.begin(), renderComponents.end(),
+                     [](const auto &a, const auto &b) {
+                         if (std::get<0>(a) != std::get<0>(b)) {
+                             return std::get<0>(a) < std::get<0>(b); // Sort by layer
+                         }
+                         return std::get<1>(a) < std::get<1>(b); // Then sort by zIndex
+                     });
+
+    for (const auto &[layer, zIndex, renderComponent] : renderComponents) {
+        renderComponent->render(deltaTime);
+    }
+
     _context.window->display();
 }
 

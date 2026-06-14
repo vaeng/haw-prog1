@@ -12,7 +12,11 @@ class GameObject;
 
 class RenderComponent : public Component {
   public:
-    RenderComponent(const std::shared_ptr<Texture> &texture) : _texture(texture) {
+    int layer{};
+    int zIndex{};
+
+    RenderComponent(const std::shared_ptr<Texture> &texture, int layer = 0, int zIndex = 0)
+        : _texture(texture), layer(layer), zIndex(zIndex) {
         _sprite.setTexture(*_texture);
     }
 

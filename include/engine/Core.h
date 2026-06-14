@@ -55,8 +55,8 @@ class Core {
 
     /// Renders the current game state to the window
     ///
-    /// Called once per frame. Dispatches to render() on all RenderComponents, but may be optimized
-    /// in the future
+    /// Called once per frame. Dispatches to render(), sorting RenderComponents by layer and zIndex
+    /// before rendering.
     void render(float deltaTime);
 
     /// Gets the current context

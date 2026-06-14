@@ -8,9 +8,6 @@ Use sfml functions and wrap them
 
 Easier than a dirty flag propagation
 
-## Layer and z indexing to sort rendering
-
-Dispatch instead of direct rendering, maybe with an enum on the game site, while casting to int on the engine side.at the docs.
 
 ## Allow Rendering of fonts
 
