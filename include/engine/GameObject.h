@@ -57,15 +57,15 @@ class GameObject {
     ///
     /// The component will be owned by this GameObject, and its owner pointer will be set to this
     /// GameObject. Returns a reference to the added component for convenience.
-    template <typename T, typename... Args> auto addComponent(Args &&...args) -> T & {
+    template <typename T, typename... Args> auto addComponent(Args &&...args) -> T * {
         static_assert(std::is_base_of_v<Component, T>);
 
         auto component = std::make_unique<T>(std::forward<Args>(args)...);
         component->owner = this;
-        T &ref = *component;
+        T *ptr = component.get();
 
         _components.push_back(std::move(component));
-        return ref;
+        return ptr;
     }
 
     [[nodiscard]] auto hasComponents() const -> bool;

@@ -8,10 +8,11 @@ namespace engine {
 
 void RenderComponent::render(float deltaTime) {
     auto transform = owner->getWorldTransform();
+
     _sprite.setPosition(transform.position);
     _sprite.setRotation(transform.rotation);
     _sprite.setScale(transform.scale);
-    _sprite.setTextureRect(_textureRect);
+
     owner->getCore()->getContext().window->draw(_sprite.getNative());
 }
 
@@ -20,11 +21,23 @@ void RenderComponent::setTexture(const std::shared_ptr<Texture> &texture) {
     _sprite.setTexture(*_texture);
 }
 
-void RenderComponent::setTextureRect(const Rect &rect) { _textureRect = rect; }
+void RenderComponent::setPivot(const Vector2 &pivot) {
+    _pivot = pivot;
+    _sprite.setPivot(_pivot);
+    auto b = _sprite.getNative().getLocalBounds();
+}
+
+void RenderComponent::setTextureRect(const Rect &rect) {
+    _textureRect = rect;
+    if (_textureRect.width > 0 && _textureRect.height > 0) {
+        _sprite.setTextureRect(_textureRect);
+    }
+    _sprite.setPivot(_pivot);
+}
 
 std::unique_ptr<Component> RenderComponent::clone() const {
     {
-        auto cloned = std::make_unique<RenderComponent>(_texture);
+        auto cloned = std::make_unique<RenderComponent>(_texture, layer, zIndex, _pivot);
         cloned->_sprite = _sprite;
         cloned->_textureRect = _textureRect;
         return cloned;

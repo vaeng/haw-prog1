@@ -55,6 +55,13 @@ class Sprite {
         }
     }
 
+    auto setPivot(const Vector2 &pivot) -> void {
+        if (_sprite) {
+            auto bounds = _sprite->getLocalBounds();
+            _sprite->setOrigin({bounds.size.x * pivot.x, bounds.size.y * pivot.y});
+        }
+    }
+
     auto getNative() -> sf::Sprite & { return *_sprite; }
 
   private:

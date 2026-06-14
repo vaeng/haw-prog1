@@ -11,6 +11,7 @@ auto createScene() -> engine::GameObject {
     engine::GameObject sceneRoot{};
 
     auto rick = std::make_unique<engine::GameObject>();
+    rick->localTransform.position = {.x = 400, .y = 300};
 
     auto texture = std::make_shared<engine::Texture>("assets/textures/rick.png");
 
@@ -30,7 +31,7 @@ auto createScene() -> engine::GameObject {
     auto music =
         std::make_shared<engine::Music>("assets/audio/Rick Astley - Never Gonna Give You Up.mp3");
     auto musicComponent = rick->addComponent<engine::MusicComponent>(music);
-    musicComponent.play();
+    musicComponent->play();
     sceneRoot.addChild(std::move(rick));
 
     return sceneRoot;
