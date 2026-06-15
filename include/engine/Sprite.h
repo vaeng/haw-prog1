@@ -57,7 +57,7 @@ class Sprite {
 
     auto setPivot(const Vector2 &pivot) -> void {
         if (_sprite) {
-            auto bounds = _sprite->getLocalBounds();
+            auto bounds = _sprite->getTextureRect();
             _sprite->setOrigin({bounds.size.x * pivot.x, bounds.size.y * pivot.y});
         }
     }

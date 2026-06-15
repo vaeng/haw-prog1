@@ -46,7 +46,7 @@ auto createScene() -> engine::GameObject {
     auto tiles = std::make_shared<engine::Texture>("assets/textures/tiles.png");
 
     auto board = std::make_unique<engine::GameObject>();
-    board->addComponent<game::GameManager>(5, 32);
+    auto gameManager = board->addComponent<game::GameManager>(5, 32);
     // center the board in the window
     board->localTransform.position = {.x = 400, .y = 300};
 
@@ -60,6 +60,23 @@ auto createScene() -> engine::GameObject {
             board->addChild(std::move(tile));
         }
     }
+
+    auto playerTexture = std::make_shared<engine::Texture>("assets/textures/rogues.png");
+    auto player1 = std::make_unique<engine::GameObject>();
+    // move somewhere way of, so the game manager does not think it is a tile. hacky.
+    player1->localTransform.position = {.x = -1000, .y = -1000};
+    auto player1RenderComponent = player1->addComponent<engine::RenderComponent>(playerTexture, 10);
+    player1RenderComponent->setTextureRect({.left = 0, .top = 32 * 2, .width = 32, .height = 32});
+    gameManager->connectPlayer(player1.get(), 1);
+    board->addChild(std::move(player1));
+
+    auto player2 = std::make_unique<engine::GameObject>();
+    // move somewhere way of, so the game manager does not think it is a tile. hacky.
+    player2->localTransform.position = {.x = -1000, .y = -1000};
+    auto player2RenderComponent = player2->addComponent<engine::RenderComponent>(playerTexture, 10);
+    player2RenderComponent->setTextureRect({.left = 32, .top = 32 * 2, .width = 32, .height = 32});
+    gameManager->connectPlayer(player2.get(), 2);
+    board->addChild(std::move(player2));
 
     sceneRoot.addChild(std::move(board));
     return sceneRoot;

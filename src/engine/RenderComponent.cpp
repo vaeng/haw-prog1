@@ -24,7 +24,6 @@ void RenderComponent::setTexture(const std::shared_ptr<Texture> &texture) {
 void RenderComponent::setPivot(const Vector2 &pivot) {
     _pivot = pivot;
     _sprite.setPivot(_pivot);
-    auto b = _sprite.getNative().getLocalBounds();
 }
 
 void RenderComponent::setTextureRect(const Rect &rect) {
