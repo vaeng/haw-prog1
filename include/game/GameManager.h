@@ -7,9 +7,22 @@
 #include "engine/Core.h"
 #include "engine/GameObject.h"
 
-#include <iostream>
-
 namespace game {
+
+enum class GameState {
+    Player1Placement,
+    Player2Placement,
+    Player1Movement,
+    Player2Movement,
+    Player1Build,
+    Player2Build,
+    Player1Win,
+    Player2Win
+};
+
+enum class BuildingLevel { None, Level1, Level2, Level3, Dome };
+
+enum class HighlightType { None, CanMove, CanBuild, BlockedMove, BlockedBuild };
 
 // GameManager is responsible for managing the game state, including the game board, player, and
 // other game objects.
@@ -32,6 +45,17 @@ class GameManager : public engine::Component {
             int x = static_cast<int>(position.x / _tileSize);
             int y = static_cast<int>(position.y / _tileSize);
             _board[{x, y}] = child.get();
+        }
+    }
+
+    void connectPlayer(engine::GameObject *player, int playerNumber) {
+        assert(player != nullptr);
+        if (playerNumber == 1) {
+            player1 = player;
+        } else if (playerNumber == 2) {
+            player2 = player;
+        } else {
+            throw std::runtime_error("Invalid player number. Must be 1 or 2.");
         }
     }
 
@@ -92,5 +116,9 @@ class GameManager : public engine::Component {
         _boardTopLeft{}; /// position of the top left corner of the board in window coordinates
     engine::Vector2 _boardBottomRight{}; /// position of the bottom right corner of the board in
                                          /// window coordinates
+    GameState _gameState{GameState::Player1Placement}; /// current state of the game
+
+    engine::GameObject *player1{nullptr};
+    engine::GameObject *player2{nullptr};
 };
 } // namespace game
