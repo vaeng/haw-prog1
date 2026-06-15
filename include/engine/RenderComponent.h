@@ -32,6 +32,7 @@ class RenderComponent : public Component {
     void setPivot(const Vector2 &pivot);
     void setTexture(const std::shared_ptr<Texture> &texture);
     void setTextureRect(const Rect &rect);
+    Rect getTextureRect() const;
     void render(float deltaTime);
     void setTint(Color tintColor);
     [[nodiscard]] std::unique_ptr<Component> clone() const override;
