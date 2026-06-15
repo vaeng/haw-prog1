@@ -14,6 +14,8 @@ class Texture {
         }
     }
 
+    auto setRepeated(bool repeated) -> void { _texture.setRepeated(repeated); }
+
     [[nodiscard]] const sf::Texture &getNative() const { return _texture; }
 
   private:

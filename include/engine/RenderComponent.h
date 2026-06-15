@@ -17,10 +17,17 @@ class RenderComponent : public Component {
     int zIndex{};
 
     RenderComponent(const std::shared_ptr<Texture> &texture, int layer = 0, int zIndex = 0,
-                    Vector2 pivot = Vector2{0.5f, 0.5f})
-        : _texture(texture), layer(layer), zIndex(zIndex), _pivot(pivot) {
+                    Vector2 pivot = Vector2{0.5f, 0.5f}, bool repeated = false)
+        : _texture(texture), layer(layer), zIndex(zIndex), _pivot(pivot), _repeated(repeated) {
         _sprite.setTexture(*_texture);
         _sprite.setPivot(_pivot);
+        _texture->setRepeated(_repeated);
+    }
+    void setRepeated(bool repeated) {
+        _repeated = repeated;
+        if (_texture) {
+            _texture->setRepeated(repeated);
+        }
     }
     void setPivot(const Vector2 &pivot);
     void setTexture(const std::shared_ptr<Texture> &texture);
@@ -33,5 +40,6 @@ class RenderComponent : public Component {
     Sprite _sprite;
     Rect _textureRect{};
     Vector2 _pivot{};
+    bool _repeated{false};
 };
 } // namespace engine

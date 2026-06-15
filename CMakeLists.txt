@@ -50,6 +50,7 @@ target_link_libraries(engine
 add_executable(my_game
     src/main.cpp
     src/game/Scene.cpp
+    include/game/GameManager.h
 )
 
 # ------------------------------------------------------------
