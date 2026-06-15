@@ -33,6 +33,7 @@ class RenderComponent : public Component {
     void setTexture(const std::shared_ptr<Texture> &texture);
     void setTextureRect(const Rect &rect);
     void render(float deltaTime);
+    void setTint(Color tintColor);
     [[nodiscard]] std::unique_ptr<Component> clone() const override;
 
   private:

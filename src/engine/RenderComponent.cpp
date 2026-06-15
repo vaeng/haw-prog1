@@ -34,6 +34,8 @@ void RenderComponent::setTextureRect(const Rect &rect) {
     _sprite.setPivot(_pivot);
 }
 
+void RenderComponent::setTint(Color tintColor) { _sprite.setTint(tintColor); }
+
 std::unique_ptr<Component> RenderComponent::clone() const {
     {
         auto cloned = std::make_unique<RenderComponent>(_texture, layer, zIndex, _pivot);

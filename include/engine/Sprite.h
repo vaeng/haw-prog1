@@ -3,6 +3,7 @@
 
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/System/Angle.hpp>
+#include <cstdint>
 
 #include "engine/Texture.h"
 #include "engine/Vector2.h"
@@ -13,6 +14,13 @@ struct Rect {
     int top;
     int width;
     int height;
+};
+
+struct Color {
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+    uint8_t a = 255;
 };
 
 class Sprite {
@@ -59,6 +67,14 @@ class Sprite {
         if (_sprite) {
             auto bounds = _sprite->getTextureRect();
             _sprite->setOrigin({bounds.size.x * pivot.x, bounds.size.y * pivot.y});
+        }
+    }
+    /// Set the tint color of the sprite. This will multiply.
+    ///
+    /// To reset the tint, set it to white (255, 255, 255, 255).
+    auto setTint(Color tintColor) -> void {
+        if (_sprite) {
+            _sprite->setColor({tintColor.r, tintColor.g, tintColor.b, tintColor.a});
         }
     }
 
