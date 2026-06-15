@@ -4,6 +4,7 @@
 #include <map>
 
 #include "engine/Component.h"
+#include "engine/Core.h"
 #include "engine/GameObject.h"
 
 #include <iostream>
@@ -18,10 +19,14 @@ class GameManager : public engine::Component {
     GameManager(int numTiles, int tileSize) : _numTiles(numTiles), _tileSize(tileSize) {}
 
     void start() override {
-        // Assumes the board is centered at (0, 0) and extends from (-numTiles/2 * tileSize,
-        // -numTiles/2 * tileSize) to (numTiles/2 * tileSize, numTiles/2 * tileSize)
-        // Also assumes, that the GameObjects are already created and added to the scene as children
-        // to the owning object, so we just need to populate the _board map
+        auto [windowWidth, windowHeight] = owner->getCore()->getContext().window->getSize();
+        // object is centered at (windowWidth / 2, windowHeight / 2), so the top left corner is at
+        // (-numTiles/2 * tileSize, -numTiles/2 * tileSize)
+        _boardTopLeft = {windowWidth / 2 - (_numTiles / 2.0f) * _tileSize,
+                         windowHeight / 2 - (_numTiles / 2.0f) * _tileSize};
+        _boardBottomRight = {windowWidth / 2 + (_numTiles / 2.0f) * _tileSize,
+                             windowHeight / 2 + (_numTiles / 2.0f) * _tileSize};
+
         for (auto &child : owner->getChildren()) {
             auto position = child->localTransform.position;
             int x = static_cast<int>(position.x / _tileSize);
@@ -35,7 +40,33 @@ class GameManager : public engine::Component {
             auto mouseX = mouseMoved->position.x;
             auto mouseY = mouseMoved->position.y;
             // check if the mouse is in the bounds of the board
+            if (mouseX >= _boardTopLeft.x && mouseX <= _boardBottomRight.x &&
+                mouseY >= _boardTopLeft.y && mouseY <= _boardBottomRight.y) {
+                int tileX = static_cast<int>((mouseX - _boardTopLeft.x) / _tileSize);
+                int tileY = static_cast<int>((mouseY - _boardTopLeft.y) / _tileSize);
+                onHoverOvertile(tileX, tileY);
+            }
+        } else if (const auto *mouseButtonPressed = event->getIf<sf::Event::MouseButtonPressed>()) {
+            auto mouseX = mouseButtonPressed->position.x;
+            auto mouseY = mouseButtonPressed->position.y;
+            // check if the mouse is in the bounds of the board
+            if (mouseX >= _boardTopLeft.x && mouseX <= _boardBottomRight.x &&
+                mouseY >= _boardTopLeft.y && mouseY <= _boardBottomRight.y) {
+                int tileX = static_cast<int>((mouseX - _boardTopLeft.x) / _tileSize);
+                int tileY = static_cast<int>((mouseY - _boardTopLeft.y) / _tileSize);
+                onClickTile(tileX, tileY);
+            }
         }
+    }
+
+    /// Methods to handle hovering and clicking on tiles, top left corner of the board is (0, 0)
+    void onHoverOvertile(int x, int y) {
+        // std::cout << "Hovering over tile (" << x << ", " << y << ")\n";
+    }
+
+    /// Example method to handle clicking on a tile, top left corner of the board is (0, 0)
+    void onClickTile(int x, int y) {
+        // std::cout << "Clicking tile (" << x << ", " << y << ")\n";
     }
 
     [[nodiscard]] std::unique_ptr<engine::Component> clone() const override {
@@ -52,10 +83,14 @@ class GameManager : public engine::Component {
     }
 
   private:
-    std::map<std::pair<int, int>, engine::GameObject *> _board{}; // maps (x, y) to GameObject
-    int _numTiles{};
-    int _tileSize{};
-    engine::Vector2 _boardTopLeft{};
-    engine::Vector2 _boardBottomRight{};
+    std::map<std::pair<int, int>, engine::GameObject *>
+        _board{};    /// maps tile coordinates (x, y) to GameObjects, where (0, 0) is the top left
+                     /// corner of the board
+    int _numTiles{}; /// number of tiles in one row/column of the board
+    int _tileSize{}; /// size of each tile in pixels, assumes square tiles
+    engine::Vector2
+        _boardTopLeft{}; /// position of the top left corner of the board in window coordinates
+    engine::Vector2 _boardBottomRight{}; /// position of the bottom right corner of the board in
+                                         /// window coordinates
 };
 } // namespace game
