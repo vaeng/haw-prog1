@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.22)
 # Project metadata
 # ------------------------------------------------------------
 project(
-    MyGame
+    Santorini
     VERSION 0.1
     LANGUAGES CXX
 )
@@ -47,7 +47,7 @@ target_link_libraries(engine
 # ------------------------------------------------------------
 # Main executable
 # ------------------------------------------------------------
-add_executable(my_game
+add_executable(santorini
     src/main.cpp
     src/game/Scene.cpp
     include/game/GameManager.h
@@ -56,7 +56,7 @@ add_executable(my_game
 # ------------------------------------------------------------
 # SFML 3.0 (vcpkg)
 # ------------------------------------------------------------
-target_link_libraries(my_game
+target_link_libraries(santorini
     PRIVATE
         engine
         SFML::Graphics
@@ -69,10 +69,10 @@ target_link_libraries(my_game
 # Assets: copy next to executable for dev runs
 # ------------------------------------------------------------
 add_custom_command(
-    TARGET my_game POST_BUILD
+    TARGET santorini POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_SOURCE_DIR}/assets
-        $<TARGET_FILE_DIR:my_game>/assets
+        $<TARGET_FILE_DIR:santorini>/assets
     COMMENT "Copying assets to build output"
 )
 
@@ -147,7 +147,7 @@ endif()
 # ------------------------------------------------------------
 # Optional install rules (future-proofing)
 # ------------------------------------------------------------
-install(TARGETS my_game
+install(TARGETS santorini
     RUNTIME DESTINATION bin
 )
 
