@@ -50,7 +50,7 @@ target_link_libraries(engine
 add_executable(santorini
     src/main.cpp
     src/game/Scene.cpp
-    include/game/GameManager.h
+    src/game/GameManager.cpp
 )
 
 # ------------------------------------------------------------
