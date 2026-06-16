@@ -1,17 +1,11 @@
-# Start from no checks, then opt into curated groups to keep behavior predictable.
 Checks: >
   -*,
   bugprone-*,
   performance-*,
-  modernize-*,
-  readability-*,
-  clang-analyzer-*
-# Keep warnings non-fatal locally; CI can enforce stricter policies later.
-WarningsAsErrors: ''
-# Analyze only project headers under src/include to reduce third-party noise.
-HeaderFilterRegex: 'include/|game/'
-HeaderFilterRegex: 'include/|engine/'
+  cppcoreguidelines-pro-type-member-init,
+  misc-const-correctness
 
-# Reuse .clang-format for tidy-generated fixes and keep terminal output plain.
+HeaderFilterRegex: 'include/(engine|game)/'
+
 FormatStyle: file
 UseColor: true

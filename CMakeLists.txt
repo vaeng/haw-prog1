@@ -92,8 +92,6 @@ file(GLOB_RECURSE FORMAT_FILES
 file(GLOB_RECURSE TIDY_FILES
     CONFIGURE_DEPENDS
     ${CMAKE_SOURCE_DIR}/src/*.cpp
-    ${CMAKE_SOURCE_DIR}/src/game/*.cpp
-    ${CMAKE_SOURCE_DIR}/src/engine/*.cpp
 )
 
 # ------------------------------------------------------------
@@ -129,7 +127,8 @@ if (CLANG_TIDY_EXE)
     add_custom_target(clang-tidy
         COMMAND ${CLANG_TIDY_EXE}
             -p ${CMAKE_BINARY_DIR}
-            --config-file=${CMAKE_SOURCE_DIR}/.clang-tidy
+            --config-file ${CMAKE_SOURCE_DIR}/.clang-tidy
+            --header-filter '${CMAKE_SOURCE_DIR}/include/(engine|game)/'
             ${TIDY_FILES}
         COMMENT "Running clang-tidy"
     )
@@ -137,7 +136,8 @@ if (CLANG_TIDY_EXE)
     add_custom_target(check-tidy
         COMMAND ${CLANG_TIDY_EXE}
             -p ${CMAKE_BINARY_DIR}
-            --config-file=${CMAKE_SOURCE_DIR}/.clang-tidy
+            --config-file ${CMAKE_SOURCE_DIR}/.clang-tidy
+            --header-filter '${CMAKE_SOURCE_DIR}/include/(engine|game)/'
             --warnings-as-errors=*
             ${TIDY_FILES}
         COMMENT "Checking clang-tidy (CI)"
