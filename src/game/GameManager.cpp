@@ -1,5 +1,6 @@
 #include "game/GameManager.h"
 #include "engine/Core.h"
+#include "engine/Vector2.h"
 
 namespace game {
 
@@ -16,6 +17,7 @@ void GameManager::start() {
     createBoard();
     createPlayers();
     computeBoardBounds();
+    setupLabels();
 }
 
 void GameManager::createBoard() {
@@ -204,6 +206,7 @@ void GameManager::handleEvent(const std::optional<sf::Event> &event, float delta
         if (clickedInBounds) {
             onClickTile(tileX, tileY);
             highlightPossibleActions();
+            updateLabels();
         }
     }
 }
@@ -343,6 +346,71 @@ void GameManager::highlightPossibleActions() {
             data.tileObject->getComponent<engine::RenderComponent>()->setTint({255, 255, 255});
             break;
         }
+    }
+}
+
+void GameManager::setupLabels() {
+    auto textTexture = std::make_shared<engine::Texture>("assets/textures/text.png");
+    auto activePlayerLabel = std::make_unique<engine::GameObject>();
+    activePlayerLabel->localTransform.position = {0, (float)(_numTiles / 2 + 1) * _screenTileSize};
+    activePlayerLabel->localTransform.scale = {0.5f, 0.5f};
+    auto activePlayerLabelRenderComponent =
+        activePlayerLabel->addComponent<engine::RenderComponent>(
+            textTexture, 10, 0, engine::Vector2{.x = 1.0f, .y = 0.0f});
+    activePlayerLabelRenderComponent->setTextureRect(
+        {.left = 0, .top = 0, .width = 150, .height = 20});
+    _activePlayerLabel = activePlayerLabel.get();
+    owner->addChild(std::move(activePlayerLabel));
+
+    auto gameStateLabel = std::make_unique<engine::GameObject>();
+    gameStateLabel->localTransform.position = {0, (float)(_numTiles / 2 + 1) * _screenTileSize};
+    gameStateLabel->localTransform.scale = {0.5f, 0.5f};
+    auto gameStateLabelRenderComponent = gameStateLabel->addComponent<engine::RenderComponent>(
+        textTexture, 10, 0, engine::Vector2{.x = 0.0f, .y = 0.0f});
+    gameStateLabelRenderComponent->setTextureRect(
+        {.left = 0, .top = 24 * 2, .width = 300, .height = 20});
+    _gameStateLabel = gameStateLabel.get();
+    owner->addChild(std::move(gameStateLabel));
+}
+void GameManager::updateLabels() {
+    auto player1turnRect = engine::Rect{.left = 0, .top = 0, .width = 150, .height = 20};
+    auto player2turnRect = engine::Rect{.left = 0, .top = 24 * 1, .width = 150, .height = 20};
+    auto placeRect = engine::Rect{.left = 0, .top = 24 * 2, .width = 300, .height = 20};
+    auto moveRect = engine::Rect{.left = 0, .top = 24 * 3, .width = 300, .height = 20};
+    auto buildRect = engine::Rect{.left = 0, .top = 24 * 4, .width = 300, .height = 20};
+    auto winnerRect = engine::Rect{.left = 0, .top = 24 * 5, .width = 300, .height = 20};
+
+    switch (_gameState) {
+    case GameState::Player1Placement:
+    case GameState::Player1Movement:
+    case GameState::Player1Build:
+    case GameState::Player1Win:
+        _activePlayerLabel->getComponent<engine::RenderComponent>()->setTextureRect(
+            player1turnRect);
+        break;
+    default:
+        _activePlayerLabel->getComponent<engine::RenderComponent>()->setTextureRect(
+            player2turnRect);
+        break;
+    }
+
+    switch (_gameState) {
+    case GameState::Player1Placement:
+    case GameState::Player2Placement:
+        _gameStateLabel->getComponent<engine::RenderComponent>()->setTextureRect(placeRect);
+        break;
+    case GameState::Player1Movement:
+    case GameState::Player2Movement:
+        _gameStateLabel->getComponent<engine::RenderComponent>()->setTextureRect(moveRect);
+        break;
+    case GameState::Player1Build:
+    case GameState::Player2Build:
+        _gameStateLabel->getComponent<engine::RenderComponent>()->setTextureRect(buildRect);
+        break;
+    case GameState::Player1Win:
+    case GameState::Player2Win:
+        _gameStateLabel->getComponent<engine::RenderComponent>()->setTextureRect(winnerRect);
+        break;
     }
 }
 } // namespace game

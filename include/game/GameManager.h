@@ -59,10 +59,14 @@ class GameManager : public engine::Component {
     std::pair<int, int> _player1Position{}; /// current position of player 1 in tile coordinates
     std::pair<int, int> _player2Position{}; /// current position of player 2 in tile coordinates
     std::map<std::pair<int, int>, TileData> _tileData{};
+    engine::GameObject *_activePlayerLabel{nullptr};
+    engine::GameObject *_gameStateLabel{nullptr};
 
     void computeBoardBounds();
     void createPlayers();
     void createBoard();
+    void setupLabels();
+    void updateLabels();
     void moveToTile(engine::GameObject *player, int x, int y);
     bool isTileAdjacentToPlayer(int playerNumber, int x, int y);
 
