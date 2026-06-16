@@ -61,6 +61,7 @@ class GameManager : public engine::Component {
     std::map<std::pair<int, int>, TileData> _tileData{};
     engine::GameObject *_activePlayerLabel{nullptr};
     engine::GameObject *_gameStateLabel{nullptr};
+    engine::GameObject *_restartLabel{nullptr};
 
     void computeBoardBounds();
     void createPlayers();
@@ -96,6 +97,7 @@ class GameManager : public engine::Component {
     void onClickTile(int x, int y);
     void trySetBuilding(int playerNumber, int x, int y);
     void highlightPossibleActions();
+    void restartGame();
 
     std::tuple<bool, int, int> getTileUnderMouse(int mouseX, int mouseY);
 };

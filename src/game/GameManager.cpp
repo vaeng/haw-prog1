@@ -1,6 +1,7 @@
 #include "game/GameManager.h"
 #include "engine/Core.h"
 #include "engine/Vector2.h"
+#include <SFML/Window/Keyboard.hpp>
 
 namespace game {
 
@@ -125,8 +126,6 @@ bool GameManager::canPlayerMove(int playerNumber, int x, int y) {
             ? _tileData[{_player1Position.first, _player1Position.second}].buildingLevel
             : _tileData[{_player2Position.first, _player2Position.second}].buildingLevel;
     if (static_cast<int>(targetLevel) - static_cast<int>(currentLevel) > 1) {
-        printf("Cannot move to (%d, %d) due to building level difference (%d)\n", x, y,
-               static_cast<int>(targetLevel) - static_cast<int>(currentLevel));
         return false; // cannot move up more than one level
     }
     return true;
@@ -165,7 +164,6 @@ void GameManager::placePlayerMove(int playerNumber, int x, int y) {
     }
     if (isGameWon(playerNumber)) {
         _gameState = (playerNumber == 1) ? GameState::Player1Win : GameState::Player2Win;
-        printf("Player %d wins!\n", playerNumber);
     } else {
         progressState();
     }
@@ -175,7 +173,6 @@ void GameManager::placeBuilding(int playerNumber, int x, int y) {
     auto currentLevel = _tileData[{x, y}].buildingLevel;
     auto tile = _tileData[{x, y}].tileObject;
     if (tile == nullptr) {
-        printf("No tile at (%d, %d)\n", x, y);
         return;
     }
     auto rc = tile->getComponent<engine::RenderComponent>();
@@ -207,6 +204,11 @@ void GameManager::handleEvent(const std::optional<sf::Event> &event, float delta
             onClickTile(tileX, tileY);
             highlightPossibleActions();
             updateLabels();
+        }
+    } else if (const auto *keyPressed = event->getIf<sf::Event::KeyPressed>()) {
+        if (keyPressed->code == sf::Keyboard::Key::R &&
+            (_gameState == GameState::Player1Win || _gameState == GameState::Player2Win)) {
+            restartGame();
         }
     }
 }
@@ -254,28 +256,21 @@ void GameManager::progressState() {
 /// Forward clicked tile positions to the appropriate handler based on the current game state
 void GameManager::onClickTile(int x, int y) {
     if (_gameState == GameState::Player1Placement) {
-        printf("Player 1 placing at (%d, %d)\n", x, y);
         placePlayerMove(1, x, y);
     } else if (_gameState == GameState::Player2Placement) {
-        printf("Player 2 placing at (%d, %d)\n", x, y);
         placePlayerMove(2, x, y);
     } else if (_gameState == GameState::Player1Movement) {
-        printf("Player 1 trying to move to (%d, %d)\n", x, y);
         tryMovePlayer(1, x, y);
     } else if (_gameState == GameState::Player2Movement) {
-        printf("Player 2 trying to move to (%d, %d)\n", x, y);
         tryMovePlayer(2, x, y);
     } else if (_gameState == GameState::Player1Build) {
-        printf("Player 1 trying to build at (%d, %d)\n", x, y);
         trySetBuilding(1, x, y);
     } else if (_gameState == GameState::Player2Build) {
-        printf("Player 2 trying to build at (%d, %d)\n", x, y);
         trySetBuilding(2, x, y);
     }
 }
 
 void GameManager::trySetBuilding(int playerNumber, int x, int y) {
-    printf("Player %d trying to build at (%d, %d)\n", playerNumber, x, y);
     if (canPlayerBuild(playerNumber, x, y)) {
         placeBuilding(playerNumber, x, y);
     }
@@ -288,7 +283,6 @@ void GameManager::highlightPossibleActions() {
     }
     switch (_gameState) {
     case GameState::Player1Movement:
-        printf("Highlighting possible moves for Player 1\n");
         for (auto &[tilePos, data] : _tileData) {
             if (canPlayerMove(1, tilePos.first, tilePos.second)) {
                 data.highlight = HighlightType::CanMove;
@@ -298,7 +292,6 @@ void GameManager::highlightPossibleActions() {
         }
         break;
     case GameState::Player1Build:
-        printf("Highlighting possible builds for Player 1\n");
         for (auto &[tilePos, data] : _tileData) {
             if (canPlayerBuild(1, tilePos.first, tilePos.second)) {
                 data.highlight = HighlightType::CanBuild;
@@ -308,7 +301,6 @@ void GameManager::highlightPossibleActions() {
         }
         break;
     case GameState::Player2Movement:
-        printf("Highlighting possible moves for Player 2\n");
         for (auto &[tilePos, data] : _tileData) {
             if (canPlayerMove(2, tilePos.first, tilePos.second)) {
                 data.highlight = HighlightType::CanMove;
@@ -318,7 +310,6 @@ void GameManager::highlightPossibleActions() {
         }
         break;
     case GameState::Player2Build:
-        printf("Highlighting possible builds for Player 2\n");
         for (auto &[tilePos, data] : _tileData) {
             if (canPlayerBuild(2, tilePos.first, tilePos.second)) {
                 data.highlight = HighlightType::CanBuild;
@@ -371,6 +362,17 @@ void GameManager::setupLabels() {
         {.left = 0, .top = 24 * 2, .width = 300, .height = 20});
     _gameStateLabel = gameStateLabel.get();
     owner->addChild(std::move(gameStateLabel));
+
+    auto restartLabel = std::make_unique<engine::GameObject>();
+    restartLabel->enabled = false; // only show restart label in win states
+    restartLabel->localTransform.position = {0, (float)(_numTiles / 2 + 2) * _screenTileSize};
+    restartLabel->localTransform.scale = {0.5f, 0.5f};
+    auto restartLabelRenderComponent = restartLabel->addComponent<engine::RenderComponent>(
+        textTexture, 10, 0, engine::Vector2{.x = 0.0f, .y = 0.0f});
+    restartLabelRenderComponent->setTextureRect(
+        {.left = 0, .top = 24 * 6, .width = 300, .height = 20});
+    _restartLabel = restartLabel.get();
+    owner->addChild(std::move(restartLabel));
 }
 void GameManager::updateLabels() {
     auto player1turnRect = engine::Rect{.left = 0, .top = 0, .width = 150, .height = 20};
@@ -397,6 +399,7 @@ void GameManager::updateLabels() {
     switch (_gameState) {
     case GameState::Player1Placement:
     case GameState::Player2Placement:
+        _restartLabel->enabled = false;
         _gameStateLabel->getComponent<engine::RenderComponent>()->setTextureRect(placeRect);
         break;
     case GameState::Player1Movement:
@@ -409,8 +412,32 @@ void GameManager::updateLabels() {
         break;
     case GameState::Player1Win:
     case GameState::Player2Win:
+        _restartLabel->enabled = true;
         _gameStateLabel->getComponent<engine::RenderComponent>()->setTextureRect(winnerRect);
+
         break;
     }
+}
+
+void GameManager::restartGame() {
+    // Reset game state
+    _gameState = GameState::Player1Placement;
+    _player1Position = {0, 0};
+    _player2Position = {0, 0};
+    _player1->enabled = false;
+    _player2->enabled = false;
+
+    // Reset tile data and visuals
+    for (auto &[tilePos, data] : _tileData) {
+        data.buildingLevel = BuildingLevel::None;
+        data.highlight = HighlightType::None;
+        auto rc = data.tileObject->getComponent<engine::RenderComponent>();
+        if (rc != nullptr) {
+            rc->setTextureRect(
+                {.left = 0, .top = 0, .width = _textureTileSize, .height = _textureTileSize});
+            rc->setTint({255, 255, 255});
+        }
+    }
+    updateLabels();
 }
 } // namespace game
