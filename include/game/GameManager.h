@@ -10,9 +10,11 @@
 
 namespace game {
 
-enum class GameState {
+enum class GameState : uint8_t {
     Player1Placement,
     Player2Placement,
+    Player1Select,
+    Player2Select,
     Player1Movement,
     Player2Movement,
     Player1Build,
@@ -21,9 +23,15 @@ enum class GameState {
     Player2Win
 };
 
-enum class BuildingLevel { None, Level1, Level2, Level3, Dome }; // move 11 down, then right
+enum class BuildingLevel : uint8_t {
+    None,
+    Level1,
+    Level2,
+    Level3,
+    Dome
+}; // move 11 down, then right
 
-enum class HighlightType { None, CanMove, CanBuild, BlockedMove, BlockedBuild };
+enum class HighlightType : uint8_t { None, CanMove, CanBuild, BlockedMove, BlockedBuild };
 
 struct TileData {
     engine::GameObject *tileObject{nullptr};
@@ -31,12 +39,18 @@ struct TileData {
     HighlightType highlight{HighlightType::None};
 };
 
+struct PlayerData {
+    std::pair<int, int> position{};
+    engine::GameObject *object{nullptr};
+    int number{};
+};
+
 // GameManager is responsible for managing the game state, including the game board, player, and
 // other game objects.
 // Note: Assumes a square board for simplicity
 class GameManager : public engine::Component {
   public:
-    GameManager(int numTiles);
+    GameManager(int workersPerPlayer, int numTiles);
     void start() override;
     void handleEvent(const std::optional<sf::Event> &event, float deltaTime) override;
 
@@ -54,14 +68,13 @@ class GameManager : public engine::Component {
                                          /// window coordinates
     GameState _gameState{GameState::Player1Placement}; /// current state of the game
 
-    engine::GameObject *_player1{nullptr};
-    engine::GameObject *_player2{nullptr};
-    std::pair<int, int> _player1Position{}; /// current position of player 1 in tile coordinates
-    std::pair<int, int> _player2Position{}; /// current position of player 2 in tile coordinates
+    int _workersPerPlayer{};
+    std::vector<PlayerData> _players;
     std::map<std::pair<int, int>, TileData> _tileData{};
     engine::GameObject *_activePlayerLabel{nullptr};
     engine::GameObject *_gameStateLabel{nullptr};
     engine::GameObject *_restartLabel{nullptr};
+    PlayerData *_selectedWorker{nullptr};
 
     void computeBoardBounds();
     void createPlayers();
@@ -69,7 +82,7 @@ class GameManager : public engine::Component {
     void setupLabels();
     void updateLabels();
     void moveToTile(engine::GameObject *player, int x, int y);
-    bool isTileAdjacentToPlayer(int playerNumber, int x, int y);
+    bool isTileAdjacentToPlayer(int x, int y);
 
     /// Check if the player can build on the tile at (x, y)
     ///
@@ -77,7 +90,7 @@ class GameManager : public engine::Component {
     /// - Must be adjacent to the player's current position (including diagonals)
     /// - Cannot build on a tile with a dome
     /// - Cannot build on a tile occupied by either player
-    bool canPlayerBuild(int playerNumber, int x, int y);
+    bool canPlayerBuild(int x, int y);
 
     /// Check if the player can move to the tile at (x, y)
     ///
@@ -86,18 +99,18 @@ class GameManager : public engine::Component {
     /// - Cannot move onto a tile with a dome
     /// - Cannot move onto a tile occupied by the other player
     /// - Cannot move onto a tile with a building level difference of +2 or more, down is allowed
-
-    bool canPlayerMove(int playerNumber, int x, int y);
-    void tryMovePlayer(int playerNumber, int x, int y);
-    bool isGameWon(int playerNumber);
-    void placePlayerMove(int playerNumber, int x, int y);
-    void placeBuilding(int playerNumber, int x, int y);
+    bool canPlayerMove(int x, int y);
+    void tryMovePlayer(int x, int y);
+    bool isGameWon();
+    void placeWorker(int playerNumber, int x, int y);
+    void placeBuilding(int x, int y);
     void onHoverOvertile(int x, int y);
     void progressState();
     void onClickTile(int x, int y);
-    void trySetBuilding(int playerNumber, int x, int y);
+    void trySetBuilding(int x, int y);
     void highlightPossibleActions();
     void restartGame();
+    void selectWorker(int playerNumber, int x, int y);
 
     std::tuple<bool, int, int> getTileUnderMouse(int mouseX, int mouseY);
 };
