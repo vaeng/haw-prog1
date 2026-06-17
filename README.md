@@ -12,4 +12,8 @@ This project is split in two parts:
 - **[Design Decisions](docs/EngineArchitecture.md)** — An architecture design record collection
 - **[Project Scope](docs/GeneralOutline.md)** — Framework, language, game description
 - **[Adding Custom Components](docs/CustomComponent.md)** — Extend the engine or the game
-- **[Planned Features](docs/PlannedFeatures.md)** — what's next
+- **[Planned Features](docs/PlannedFeatures.md)** — What's next
+
+## Changelog
+
+- **[Engine and Game Changes](CHANGELOG.md)** — Work on the engine and progress of the game
