@@ -167,6 +167,12 @@ bool GameManager::isGameWon() {
 }
 
 void GameManager::placeWorker(int playerNumber, int x, int y) {
+    // check if tile is already occupied by another worker
+    for (const auto &playerData : _players) {
+        if (x == playerData.position.first && y == playerData.position.second) {
+            return; // tile is occupied, do not place worker
+        }
+    }
     // grab first worker that matches the player number and is not yet placed on the board
     for (auto &playerData : _players) {
         if (playerData.number == playerNumber && playerData.object->enabled == false) {
