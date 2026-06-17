@@ -67,23 +67,6 @@ void updateGameObject(GameObject &gameObject, float deltaTime) {
 void Core::update(float deltaTime) { updateGameObject(_root, deltaTime); }
 auto Core::getRoot() -> GameObject & { return _root; }
 
-void renderGameObject(GameObject &gameObject, float deltaTime) {
-    if (!gameObject.enabled) {
-        return;
-    }
-
-    // Render the current game object
-    auto *renderComponent = gameObject.getComponent<RenderComponent>();
-    if (renderComponent != nullptr && renderComponent->enabled) {
-        renderComponent->render(deltaTime);
-    }
-
-    // Recursively render children
-    for (auto &child : gameObject.getChildren()) {
-        renderGameObject(*child, deltaTime);
-    }
-}
-
 auto Core::getContext() const -> const Context & { return _context; }
 
 std::vector<std::tuple<int, int, RenderComponent *>> collectRenderComponents(GameObject *root) {
