@@ -1,49 +1,14 @@
 #pragma once
 
 #include <SFML/Audio/Sound.hpp>
-#include <map>
 
 #include "engine/Component.h"
 #include "engine/GameObject.h"
 #include "engine/RenderComponent.h"
 #include "engine/Vector2.h"
+#include "game/GameState.h"
 
 namespace game {
-
-enum class GameState : uint8_t {
-    Player1Placement,
-    Player2Placement,
-    Player1Select,
-    Player2Select,
-    Player1Movement,
-    Player2Movement,
-    Player1Build,
-    Player2Build,
-    Player1Win,
-    Player2Win
-};
-
-enum class BuildingLevel : uint8_t {
-    None,
-    Level1,
-    Level2,
-    Level3,
-    Dome
-}; // move 11 down, then right
-
-enum class HighlightType : uint8_t { None, CanMove, CanBuild, BlockedMove, BlockedBuild };
-
-struct TileData {
-    engine::GameObject *tileObject{nullptr};
-    BuildingLevel buildingLevel{BuildingLevel::None};
-    HighlightType highlight{HighlightType::None};
-};
-
-struct PlayerData {
-    std::pair<int, int> position{};
-    engine::GameObject *object{nullptr};
-    int number{};
-};
 
 struct BoardProperties {
     int numTiles{};       /// number of tiles in one row/column of the board
@@ -71,15 +36,15 @@ class GameManager : public engine::Component {
     BoardProperties _boardProperties{};
     int _textureTileSize{}; /// size of the board tiles in pixels, hardcoded in start() for now,
                             /// could be made configurable
-    GameState _gameState{GameState::Player1Placement}; /// current state of the game
+    Turn _gameState{Turn::Player1Placement}; /// current state of the game
 
     int _workersPerPlayer{};
-    std::vector<PlayerData> _players;
+    std::vector<WorkerData> _players;
     std::map<std::pair<int, int>, TileData> _tileData{};
     engine::GameObject *_activePlayerLabel{nullptr};
     engine::GameObject *_gameStateLabel{nullptr};
     engine::GameObject *_restartLabel{nullptr};
-    PlayerData *_selectedWorker{nullptr};
+    WorkerData *_selectedWorker{nullptr};
 
     void computeBoardBounds();
     void createPlayers();
