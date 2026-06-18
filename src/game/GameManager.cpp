@@ -6,7 +6,7 @@
 namespace game {
 
 GameManager::GameManager(int workersPerPlayer, int numTiles)
-    : _workersPerPlayer(workersPerPlayer), _numTiles(numTiles) {
+    : _workersPerPlayer(workersPerPlayer), _boardProperties({.numTiles = numTiles}) {
     if (numTiles % 2 == 0) {
         throw std::runtime_error("Number of tiles must be odd to have a center tile");
     }
@@ -15,7 +15,7 @@ GameManager::GameManager(int workersPerPlayer, int numTiles)
 void GameManager::start() {
     _textureTileSize = 32; // depends on texture used for the board, hardcoded for now, could be
                            // made configurable
-    _screenTileSize = _textureTileSize * owner->localTransform.scale.x;
+    _boardProperties.screenTileSize = _textureTileSize * owner->localTransform.scale.x;
     createBoard();
     createPlayers();
     computeBoardBounds();
@@ -24,11 +24,11 @@ void GameManager::start() {
 }
 
 void GameManager::createBoard() {
-    float spacing = _screenTileSize;
+    float spacing = _boardProperties.screenTileSize;
     auto tiles = std::make_shared<engine::Texture>("assets/textures/tiles.png");
 
-    auto tilesPerSide =
-        _numTiles / 2; // number of tiles from center to edge, e.g. 2 for a 5x5 board
+    auto tilesPerSide = _boardProperties.numTiles /
+                        2; // number of tiles from center to edge, e.g. 2 for a 5x5 board
 
     for (int i = -tilesPerSide; i <= tilesPerSide; ++i) {
         for (int j = -tilesPerSide; j <= tilesPerSide; ++j) {
@@ -76,9 +76,13 @@ void GameManager::computeBoardBounds() {
     auto [windowWidth, windowHeight] = owner->getCore()->getContext().window->getSize();
     // object is centered at (windowWidth / 2, windowHeight / 2), so the top left corner is at
     auto boardPosition = owner->getWorldTransform().position;
-    auto halfBoardSize = (_numTiles / 2.0f) * _screenTileSize;
-    _boardTopLeft = {boardPosition.x - halfBoardSize, boardPosition.y - halfBoardSize};
-    _boardBottomRight = {boardPosition.x + halfBoardSize, boardPosition.y + halfBoardSize};
+    auto halfBoardSize = (_boardProperties.numTiles / 2.0f) * _boardProperties.screenTileSize;
+    _boardProperties.boardTopLeft = {boardPosition.x - halfBoardSize,
+                                     boardPosition.y - halfBoardSize};
+    ;
+    _boardProperties.boardBottomRight = {boardPosition.x + halfBoardSize,
+                                         boardPosition.y + halfBoardSize};
+    ;
 }
 
 void GameManager::moveToTile(engine::GameObject *player, int x, int y) {
@@ -100,7 +104,7 @@ bool GameManager::isTileAdjacentToPlayer(int x, int y) {
 }
 
 std::unique_ptr<engine::Component> GameManager::clone() const {
-    return std::make_unique<GameManager>(_workersPerPlayer, _numTiles);
+    return std::make_unique<GameManager>(_workersPerPlayer, _boardProperties.numTiles);
 }
 
 bool GameManager::canPlayerBuild(int x, int y) {
@@ -240,10 +244,16 @@ void GameManager::handleEvent(const std::optional<sf::Event> &event, float delta
 }
 
 std::tuple<bool, int, int> GameManager::getTileUnderMouse(int mouseX, int mouseY) {
-    if (mouseX >= _boardTopLeft.x && mouseX <= _boardBottomRight.x && mouseY >= _boardTopLeft.y &&
-        mouseY <= _boardBottomRight.y) {
-        int tileX = static_cast<int>((mouseX - _boardTopLeft.x) / _screenTileSize) - _numTiles / 2;
-        int tileY = static_cast<int>((mouseY - _boardTopLeft.y) / _screenTileSize) - _numTiles / 2;
+    if (mouseX >= _boardProperties.boardTopLeft.x &&
+        mouseX <= _boardProperties.boardBottomRight.x &&
+        mouseY >= _boardProperties.boardTopLeft.y &&
+        mouseY <= _boardProperties.boardBottomRight.y) {
+        int tileX = static_cast<int>((mouseX - _boardProperties.boardTopLeft.x) /
+                                     _boardProperties.screenTileSize) -
+                    _boardProperties.numTiles / 2;
+        int tileY = static_cast<int>((mouseY - _boardProperties.boardTopLeft.y) /
+                                     _boardProperties.screenTileSize) -
+                    _boardProperties.numTiles / 2;
         return {true, tileX, tileY};
     }
     return {false, 0, 0};
@@ -390,7 +400,8 @@ void GameManager::highlightPossibleActions() {
 void GameManager::setupLabels() {
     auto textTexture = std::make_shared<engine::Texture>("assets/textures/text.png");
     auto activePlayerLabel = std::make_unique<engine::GameObject>();
-    activePlayerLabel->localTransform.position = {0, (float)(_numTiles / 2 + 1) * _screenTileSize};
+    activePlayerLabel->localTransform.position = {0, (float)(_boardProperties.numTiles / 2 + 1) *
+                                                         _boardProperties.screenTileSize};
     activePlayerLabel->localTransform.scale = {0.5f, 0.5f};
     auto activePlayerLabelRenderComponent =
         activePlayerLabel->addComponent<engine::RenderComponent>(
@@ -401,7 +412,8 @@ void GameManager::setupLabels() {
     owner->addChild(std::move(activePlayerLabel));
 
     auto gameStateLabel = std::make_unique<engine::GameObject>();
-    gameStateLabel->localTransform.position = {0, (float)(_numTiles / 2 + 1) * _screenTileSize};
+    gameStateLabel->localTransform.position = {0, (float)(_boardProperties.numTiles / 2 + 1) *
+                                                      _boardProperties.screenTileSize};
     gameStateLabel->localTransform.scale = {0.5f, 0.5f};
     auto gameStateLabelRenderComponent = gameStateLabel->addComponent<engine::RenderComponent>(
         textTexture, 10, 0, engine::Vector2{.x = 0.0f, .y = 0.0f});
@@ -412,7 +424,8 @@ void GameManager::setupLabels() {
 
     auto restartLabel = std::make_unique<engine::GameObject>();
     restartLabel->enabled = false; // only show restart label in win states
-    restartLabel->localTransform.position = {0, (float)(_numTiles / 2 + 2) * _screenTileSize};
+    restartLabel->localTransform.position = {0, (float)(_boardProperties.numTiles / 2 + 2) *
+                                                    _boardProperties.screenTileSize};
     restartLabel->localTransform.scale = {0.5f, 0.5f};
     auto restartLabelRenderComponent = restartLabel->addComponent<engine::RenderComponent>(
         textTexture, 10, 0, engine::Vector2{.x = 0.0f, .y = 0.0f});
@@ -492,4 +505,5 @@ void GameManager::restartGame() {
     }
     updateLabels();
 }
+const BoardProperties &GameManager::getBoardProperties() const { return _boardProperties; }
 } // namespace game

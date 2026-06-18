@@ -45,6 +45,16 @@ struct PlayerData {
     int number{};
 };
 
+struct BoardProperties {
+    int numTiles{};       /// number of tiles in one row/column of the board
+    int screenTileSize{}; /// size of each tile in actual pixels on the screen (including scale of
+                          /// parent), assumes square tiles
+    engine::Vector2
+        boardTopLeft{}; /// position of the top left corner of the board in window coordinates
+    engine::Vector2 boardBottomRight{}; /// position of the bottom right corner of the board in
+                                        /// window coordinates
+};
+
 // GameManager is responsible for managing the game state, including the game board, player, and
 // other game objects.
 // Note: Assumes a square board for simplicity
@@ -53,19 +63,14 @@ class GameManager : public engine::Component {
     GameManager(int workersPerPlayer, int numTiles);
     void start() override;
     void handleEvent(const std::optional<sf::Event> &event, float deltaTime) override;
-
     [[nodiscard]] std::unique_ptr<engine::Component> clone() const override;
 
+    const BoardProperties &getBoardProperties() const;
+
   private:
-    int _numTiles{};        /// number of tiles in one row/column of the board
-    int _screenTileSize{};  /// size of each tile in actual pixels on the screen (including scale of
-                            /// parent), assumes square tiles
+    BoardProperties _boardProperties{};
     int _textureTileSize{}; /// size of the board tiles in pixels, hardcoded in start() for now,
                             /// could be made configurable
-    engine::Vector2
-        _boardTopLeft{}; /// position of the top left corner of the board in window coordinates
-    engine::Vector2 _boardBottomRight{}; /// position of the bottom right corner of the board in
-                                         /// window coordinates
     GameState _gameState{GameState::Player1Placement}; /// current state of the game
 
     int _workersPerPlayer{};
