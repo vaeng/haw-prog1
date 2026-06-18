@@ -44,6 +44,7 @@
 - Layer and zIndex sorting in render pipeline via `std::stable_sort`
 - `GameObject::clone()`: deep-copy with detached components
 - `Component::clone()`: virtual clone interface (all components must implement)
+- `MessageBus`: accessible via `Core::getContext()`
 
 #### Changed
 

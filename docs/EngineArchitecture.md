@@ -97,3 +97,12 @@ In the case of overlapping objects with the same layer and zIndex, we need a sta
 `std::stable_sort` is an obvious candidate for the sorting process.
 There are faster algorithms like heap, bucket, and radix sorting, but the scale of our intended game does not give those implementations a significant performance boost.
 Additionally, we would need to add further flags to avoid z-Fighting, as some of those techniques are not stable out of the box.
+
+### Message Bus
+
+The message bus was integrated to reduce coupling.
+For the scope of the game a string-based system would be enough, but spelling errors might produce bugs.
+Instead, the implemented version features a templated publish and subscribe system.
+The events can be defined by the game side of the code and do not have to be known by the engine.
+Subscribers hand over the handle function on subscription, the call is thus handled automatically.
+RAII is used to take care of unsubscribing via a connection object.
