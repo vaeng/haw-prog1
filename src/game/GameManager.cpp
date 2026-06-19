@@ -17,6 +17,18 @@ GameManager::GameManager(int workersPerPlayer, int numTiles)
     if (numTiles % 2 == 0) {
         throw std::runtime_error("Number of tiles must be odd to have a center tile");
     }
+    // initialize tile data for all tiles on the board
+    for (int i = -_boardProperties.numTiles / 2; i <= _boardProperties.numTiles / 2; ++i) {
+        for (int j = -_boardProperties.numTiles / 2; j <= _boardProperties.numTiles / 2; ++j) {
+            _gameStateData.tileData[{i, j}] = TileData{};
+        }
+    }
+    // initialize worker data for all workers in the game
+    for (int workerId = 0, playerNum = 1; playerNum <= 2; ++playerNum) {
+        for (int _i{}; _i < _boardProperties.workersPerPlayer; ++_i, ++workerId) {
+            _gameStateData.workers.push_back({.id = workerId, .playerNumber = playerNum});
+        }
+    }
 }
 
 std::unique_ptr<engine::Component> GameManager::clone() const {

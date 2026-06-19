@@ -40,7 +40,6 @@ class TurnSystem {
     void resetGame();
 
     void tryMovePlayer(int x, int y);
-    void moveToTile(engine::GameObject *player, int x, int y);
     void placeWorker(int playerNumber, int x, int y);
     void trySetBuilding(int x, int y);
     void placeBuilding(int x, int y);

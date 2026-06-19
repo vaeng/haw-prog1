@@ -1,7 +1,7 @@
 #pragma once
 
-#include "engine/GameObject.h"
 #include <map>
+#include <vector>
 
 namespace game {
 enum class Turn : uint8_t {
@@ -28,14 +28,13 @@ enum class BuildingLevel : uint8_t {
 enum class HighlightType : uint8_t { None, CanMove, CanBuild, BlockedMove, BlockedBuild };
 
 struct TileData {
-    engine::GameObject *tileObject{nullptr};
     BuildingLevel buildingLevel{BuildingLevel::None};
     HighlightType highlight{HighlightType::None};
 };
 
 struct WorkerData {
+    int id{};
     std::pair<int, int> position{};
-    engine::GameObject *object{nullptr};
     bool isSelected{false};
     bool isPlaced{false};
     int playerNumber{};

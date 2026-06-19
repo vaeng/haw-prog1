@@ -28,7 +28,7 @@ void GameView::createBoard(engine::GameObject *owner) {
     for (int i = -tilesPerSide; i <= tilesPerSide; ++i) {
         for (int j = -tilesPerSide; j <= tilesPerSide; ++j) {
             auto tile = std::make_unique<engine::GameObject>();
-            _gameStateData.tileData[{i, j}].tileObject = tile.get();
+            _tileObjects[{i, j}] = tile.get();
             tile->localTransform.position = {.x = i * spacing, .y = j * spacing};
             auto renderComponent = tile->addComponent<engine::RenderComponent>(tiles);
             renderComponent->setTextureRect(
@@ -40,32 +40,27 @@ void GameView::createBoard(engine::GameObject *owner) {
 
 void GameView::createPlayers(engine::GameObject *owner) {
     auto playerTexture = std::make_shared<engine::Texture>("assets/textures/rogues.png");
-    for (int i = 0; i < _boardProperties.workersPerPlayer; ++i) {
-        auto player1 = std::make_unique<engine::GameObject>();
-        player1->enabled = false; // disable player until they are placed on the board
-        auto player1RenderComponent =
-            player1->addComponent<engine::RenderComponent>(playerTexture, 10);
-        player1RenderComponent->setTextureRect({.left = 0,
-                                                .top = _textureTileSize * 2,
-                                                .width = _textureTileSize,
-                                                .height = _textureTileSize});
 
-        _gameStateData.workers.push_back(
-            {.position = {}, .object = player1.get(), .playerNumber = 1});
-        owner->addChild(std::move(player1));
-
-        auto player2 = std::make_unique<engine::GameObject>();
-        player2->enabled = false; // disable player until they are placed on the board
-        auto player2RenderComponent =
-            player2->addComponent<engine::RenderComponent>(playerTexture, 10);
-        player2RenderComponent->setTextureRect({.left = _textureTileSize,
-                                                .top = _textureTileSize * 2,
-                                                .width = _textureTileSize,
-                                                .height = _textureTileSize});
-        _gameStateData.workers.push_back(
-            {.position = {}, .object = player2.get(), .playerNumber = 2});
-        owner->addChild(std::move(player2));
+    for (const auto &[id, position, selected, placed, playerNumber] : _gameStateData.workers) {
+        auto worker = std::make_unique<engine::GameObject>();
+        worker->enabled = false; // disable worker until they are placed on the board
+        auto workerRenderComponent =
+            worker->addComponent<engine::RenderComponent>(playerTexture, 10);
+        if (playerNumber == 1) {
+            workerRenderComponent->setTextureRect({.left = 0,
+                                                   .top = _textureTileSize * 2,
+                                                   .width = _textureTileSize,
+                                                   .height = _textureTileSize});
+        } else {
+            workerRenderComponent->setTextureRect({.left = _textureTileSize,
+                                                   .top = _textureTileSize * 2,
+                                                   .width = _textureTileSize,
+                                                   .height = _textureTileSize});
+        }
+        _workerObjects[id] = worker.get();
+        owner->addChild(std::move(worker));
     }
+
     _gameStateData.workers[0].isSelected = true; // default to player 1 selected at start of game
 }
 
@@ -157,20 +152,24 @@ void GameView::updateLabels() {
 }
 
 void GameView::highlightPossibleActions() {
-    for (auto &[_, data] : _gameStateData.tileData) {
+    for (auto &[position, data] : _gameStateData.tileData) {
         switch (data.highlight) {
         case HighlightType::CanMove:
-            data.tileObject->getComponent<engine::RenderComponent>()->setTint({150, 150, 255});
+            _tileObjects[position]->getComponent<engine::RenderComponent>()->setTint(
+                {150, 150, 255});
             break;
         case HighlightType::CanBuild:
-            data.tileObject->getComponent<engine::RenderComponent>()->setTint({150, 255, 150});
+            _tileObjects[position]->getComponent<engine::RenderComponent>()->setTint(
+                {150, 255, 150});
             break;
         case HighlightType::BlockedMove:
         case HighlightType::BlockedBuild:
-            data.tileObject->getComponent<engine::RenderComponent>()->setTint({255, 150, 150});
+            _tileObjects[position]->getComponent<engine::RenderComponent>()->setTint(
+                {255, 150, 150});
             break;
         case HighlightType::None:
-            data.tileObject->getComponent<engine::RenderComponent>()->setTint({255, 255, 255});
+            _tileObjects[position]->getComponent<engine::RenderComponent>()->setTint(
+                {255, 255, 255});
             break;
         }
     }
@@ -180,7 +179,7 @@ void GameView::updateBoard() {
     // Reset tile data and visuals
     for (auto &[tilePos, data] : _gameStateData.tileData) {
         auto currentLevel = data.buildingLevel;
-        auto tile = data.tileObject;
+        auto tile = _tileObjects[tilePos];
         if (tile == nullptr) {
             continue;
         }
@@ -202,21 +201,20 @@ void GameView::updateBoard() {
 }
 
 void GameView::updatePlayerPositions() {
-    for (const auto &workerData : _gameStateData.workers) {
-        if (workerData.object == nullptr) {
+    for (const auto &[id, position, selected, placed, playerNumber] : _gameStateData.workers) {
+        if (_workerObjects[id] == nullptr) {
             continue; // skip if worker is not yet placed on the board
-        } else if (!workerData.isPlaced) {
-            workerData.object->enabled = false; // disable worker if it is not placed on the board
+        } else if (!placed) {
+            _workerObjects[id]->enabled = false; // disable worker if it is not placed on the board
             continue;
         }
-        auto tile = _gameStateData.tileData[{workerData.position.first, workerData.position.second}]
-                        .tileObject;
+        auto tile = _tileObjects[{position.first, position.second}];
         if (tile == nullptr) {
             continue;
         }
-        workerData.object->enabled = true; // enable player once it is placed on the board
-        workerData.object->localTransform.position = {tile->localTransform.position.x,
-                                                      tile->localTransform.position.y};
+        _workerObjects[id]->enabled = true; // enable worker once it is placed on the board
+        _workerObjects[id]->localTransform.position = {tile->localTransform.position.x,
+                                                       tile->localTransform.position.y};
     }
 }
 } // namespace game
