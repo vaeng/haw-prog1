@@ -6,12 +6,6 @@ namespace game {
 
 class BoardProperties;
 
-/*
-* Receives GameStateData& and BoardProperties&
-* Move canPlayerMove, canPlayerBuild, isTileAdjacentToPlayer, isGameWon, progressState,
-tryMovePlayer, placeWorker, placeBuilding, selectWorker into it
-*/
-
 class TurnSystem {
   public:
     TurnSystem(GameStateData &gameStateData, const BoardProperties &boardProperties)
@@ -45,13 +39,13 @@ class TurnSystem {
     void trySetBuilding(int x, int y);
     void placeBuilding(int x, int y);
     void selectWorker(int playerNumber, int x, int y);
+    void updatePossibleActions();
+    void resetGame();
 
     WorkerData &getSelectedWorker();
 
   private:
     GameStateData &_gameStateData;
-    int _textureTileSize{32}; /// size of the board tiles in pixels, hardcoded in start() for now,
-                              /// could be made configurable
     const BoardProperties &_boardProperties;
 };
 

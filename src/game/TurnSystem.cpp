@@ -1,5 +1,4 @@
 #include "game/TurnSystem.h"
-#include "engine/RenderComponent.h"
 
 namespace game {
 
@@ -157,20 +156,6 @@ void TurnSystem::trySetBuilding(int x, int y) {
 
 void TurnSystem::placeBuilding(int x, int y) {
     auto currentLevel = _gameStateData.tileData[{x, y}].buildingLevel;
-    auto tile = _gameStateData.tileData[{x, y}].tileObject;
-    if (tile == nullptr) {
-        return;
-    }
-    auto rc = tile->getComponent<engine::RenderComponent>();
-    if (rc != nullptr) {
-        auto previousRect = rc->getTextureRect();
-        if (currentLevel == BuildingLevel::None) {
-            previousRect.top += 11 * _textureTileSize;
-        } else {
-            previousRect.left += _textureTileSize;
-        }
-        rc->setTextureRect(previousRect);
-    }
     _gameStateData.tileData[{x, y}].buildingLevel =
         static_cast<BuildingLevel>(static_cast<int>(currentLevel) + 1);
     progressState();
@@ -195,4 +180,68 @@ void TurnSystem::moveToTile(engine::GameObject *player, int x, int y) {
                                        tile->localTransform.position.y};
 }
 
+void TurnSystem::updatePossibleActions() {
+    // Clear all highlights first
+    for (auto &[_, data] : _gameStateData.tileData) {
+        data.highlight = HighlightType::None;
+    }
+    switch (_gameStateData.turn) {
+    case Turn::Player1Movement:
+        for (auto &[tilePos, data] : _gameStateData.tileData) {
+            if (canPlayerMove(tilePos.first, tilePos.second)) {
+                data.highlight = HighlightType::CanMove;
+            } else if (isTileAdjacentToPlayer(tilePos.first, tilePos.second)) {
+                data.highlight = HighlightType::BlockedMove;
+            }
+        }
+        break;
+    case Turn::Player1Build:
+        for (auto &[tilePos, data] : _gameStateData.tileData) {
+            if (canPlayerBuild(tilePos.first, tilePos.second)) {
+                data.highlight = HighlightType::CanBuild;
+            } else if (isTileAdjacentToPlayer(tilePos.first, tilePos.second)) {
+                data.highlight = HighlightType::BlockedBuild;
+            }
+        }
+        break;
+    case Turn::Player2Movement:
+        for (auto &[tilePos, data] : _gameStateData.tileData) {
+            if (canPlayerMove(tilePos.first, tilePos.second)) {
+                data.highlight = HighlightType::CanMove;
+            } else if (isTileAdjacentToPlayer(tilePos.first, tilePos.second)) {
+                data.highlight = HighlightType::BlockedMove;
+            }
+        }
+        break;
+    case Turn::Player2Build:
+        for (auto &[tilePos, data] : _gameStateData.tileData) {
+            if (canPlayerBuild(tilePos.first, tilePos.second)) {
+                data.highlight = HighlightType::CanBuild;
+            } else if (isTileAdjacentToPlayer(tilePos.first, tilePos.second)) {
+                data.highlight = HighlightType::BlockedBuild;
+            }
+        }
+        break;
+    default:
+        break; // do nothing in placement and win states
+    }
+}
+
+void TurnSystem::resetGame() {
+    // Reset game state
+    _gameStateData.turn = Turn::Player1Placement;
+    for (auto &workerData : _gameStateData.workers) {
+        workerData.isSelected = false;
+        workerData.position = {0, 0};
+        workerData.object->enabled = false;
+    }
+    // default select the first worker of player 1 at the start of the game
+    _gameStateData.workers[0].isSelected = true;
+
+    // Reset tile data and visuals
+    for (auto &[tilePos, data] : _gameStateData.tileData) {
+        data.buildingLevel = BuildingLevel::None;
+        data.highlight = HighlightType::None;
+    }
+}
 } // namespace game
