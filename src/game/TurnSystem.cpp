@@ -1,6 +1,6 @@
 #include "game/TurnSystem.h"
-#include "engine/GameObject.h"
 #include "engine/MessageBus.h"
+#include <stdexcept>
 
 namespace game {
 

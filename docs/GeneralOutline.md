@@ -28,6 +28,12 @@ They render fine in the IDE and export well enough in a doxygen HTML export.
 Real doxygen formatting would make an export prettier, but they render with lots of noise in common IDEs as the `@tags` are not shown as intended.
 See [GameObject.h](../include/engine/GameObject.h) for examples.
 
+## MSV Pattern
+
+The game is implemented with a separation between model, systems and views in mind.
+For that reason the god-class `GameManager` was split into `TurnSystem`, `GameView`, `InputSystem` and conncted via `MessageBus`.
+What is left of the `GameManager` is a thin orchestration unit to handle SFML events and general setup of the systems and the game view.
+
 ## Limitations
 
 - `GameObject::clone()` produces a detached tree — _core must be set manually

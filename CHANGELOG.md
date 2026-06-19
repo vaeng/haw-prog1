@@ -22,7 +22,12 @@
 
 #### Changed
 
-- GameManager moved from header-only to `.h` + `.cpp` split
+- Extracted InputSystem: mouse click/hover → TileClickedMessage/TileHoveredMessage
+- Extracted TurnSystem: game rules/logic from GameManager, fully decoupled from engine types
+- Extracted GameView: rendering ownership, tile highlights, worker positions
+- Introduced MessageBus: pub/sub decoupling between systems/view/input
+- WorkerData::object removed: replaced with int id + GameView::_workerObjects map
+- GameManager reduced to thin orchestrator: translates SFML events to messages, wires subsystems
 - `_boardTopLeft` now computed from actual world transform
   (was: hardcoded to window center)
 - Scene creation simplified: board creates its own tiles programmatically
