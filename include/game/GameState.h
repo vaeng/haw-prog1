@@ -37,6 +37,7 @@ struct WorkerData {
     std::pair<int, int> position{};
     engine::GameObject *object{nullptr};
     bool isSelected{false};
+    bool isPlaced{false};
     int playerNumber{};
 };
 

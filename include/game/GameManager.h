@@ -1,11 +1,10 @@
 #pragma once
 
-#include <SFML/Audio/Sound.hpp>
-
 #include "engine/Component.h"
 #include "engine/Vector2.h"
 #include "game/GameState.h"
 #include "game/GameView.h"
+#include "game/InputSystem.h"
 #include "game/TurnSystem.h"
 
 namespace game {
@@ -38,19 +37,10 @@ class GameManager : public engine::Component {
     GameStateData _gameStateData{};
     TurnSystem _turnSystem{_gameStateData, _boardProperties};
     GameView _gameView{_gameStateData, _boardProperties};
+    InputSystem _inputSystem{_boardProperties};
     int _textureTileSize{}; /// size of the board tiles in pixels, hardcoded in start() for now,
                             /// could be made configurable
-
+    engine::MessageBus *_messageBus{nullptr};
     void computeBoardBounds();
-    void createPlayers();
-    void createBoard();
-
-    void onHoverOvertile(int x, int y);
-
-    void onClickTile(int x, int y);
-
-    void restartGame();
-
-    std::tuple<bool, int, int> getTileUnderMouse(int mouseX, int mouseY);
 };
 } // namespace game

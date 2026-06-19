@@ -1,6 +1,22 @@
 #include "engine/MessageBus.h"
 
 namespace engine {
+// Move constructor
+Connection::Connection(Connection &&other) noexcept : id(other.id), bus(other.bus) {
+    other.bus = nullptr; // prevent double-unsubscribe
+}
+// Move assignment
+Connection &Connection::operator=(Connection &&other) noexcept {
+    if (this != &other) {
+        if (bus)
+            bus->unsubscribe(id);
+        id = other.id;
+        bus = other.bus;
+        other.bus = nullptr;
+    }
+    return *this;
+}
+
 Connection::~Connection() {
     if (bus) {
         bus->unsubscribe(id);

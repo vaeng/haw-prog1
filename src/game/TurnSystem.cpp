@@ -1,6 +1,50 @@
 #include "game/TurnSystem.h"
+#include "engine/GameObject.h"
+#include "engine/MessageBus.h"
 
 namespace game {
+
+void TurnSystem::setup(engine::MessageBus *bus) {
+    _messageBus = bus;
+    _tileClickedConnection = _messageBus->subscribe<TileClickedMessage>(
+        [this](const TileClickedMessage &message) { onTileClicked(message); });
+    _gameRestartedConnection =
+        _messageBus->subscribe<RestartGameMessage>([this](const RestartGameMessage &message) {
+            // only reset game if it is currently in a win state, otherwise ignore restart message
+            if (_gameStateData.turn == Turn::Player1Win ||
+                _gameStateData.turn == Turn::Player2Win) {
+                resetGame();
+            }
+        });
+    _messageBus->publish<StateChangedMessage>({}); // trigger initial label and highlight setup
+}
+
+void TurnSystem::onTileClicked(TileClickedMessage message) {
+    switch (_gameStateData.turn) {
+    case Turn::Player1Placement:
+        placeWorker(1, message.x, message.y);
+        break;
+    case Turn::Player2Placement:
+        placeWorker(2, message.x, message.y);
+        break;
+    case Turn::Player1Select:
+        selectWorker(1, message.x, message.y);
+        break;
+    case Turn::Player2Select:
+        selectWorker(2, message.x, message.y);
+        break;
+    case Turn::Player1Movement:
+    case Turn::Player2Movement:
+        tryMovePlayer(message.x, message.y);
+        break;
+    case Turn::Player1Build:
+    case Turn::Player2Build:
+        trySetBuilding(message.x, message.y);
+        break;
+    default:
+        break; // do nothing if it's a win state
+    }
+}
 
 bool TurnSystem::isTileAdjacentToPlayer(int x, int y) {
     auto playerPos = getSelectedWorker().position;
@@ -90,6 +134,8 @@ void TurnSystem::progressState() {
     default:
         break; // do nothing in win states
     }
+    updatePossibleActions();
+    _messageBus->publish<StateChangedMessage>({}); // trigger view update after state change
 }
 
 void TurnSystem::selectWorker(int playerNumber, int x, int y) {
@@ -107,12 +153,11 @@ void TurnSystem::selectWorker(int playerNumber, int x, int y) {
 void TurnSystem::tryMovePlayer(int x, int y) {
     if (canPlayerMove(x, y)) {
         getSelectedWorker().position = {x, y};
-        getSelectedWorker().object->enabled = true; // enable player once it is placed on the board
-        moveToTile(getSelectedWorker().object, x, y);
-
+        getSelectedWorker().isPlaced = true;
         if (isGameWon()) {
             _gameStateData.turn =
                 (getSelectedWorker().playerNumber == 1) ? Turn::Player1Win : Turn::Player2Win;
+            _messageBus->publish<StateChangedMessage>({}); // trigger view update after state change
         } else {
             progressState();
         }
@@ -122,23 +167,25 @@ void TurnSystem::tryMovePlayer(int x, int y) {
 void TurnSystem::placeWorker(int playerNumber, int x, int y) {
     // check if tile is already occupied by another worker
     for (const auto &playerData : _gameStateData.workers) {
-        if (x == playerData.position.first && y == playerData.position.second) {
+        if (playerData.isPlaced && x == playerData.position.first &&
+            y == playerData.position.second) {
             return; // tile is occupied, do not place worker
         }
     }
     // grab first worker that matches the player number and is not yet placed on the board
     for (auto &playerData : _gameStateData.workers) {
-        if (playerData.playerNumber == playerNumber && playerData.object->enabled == false) {
+        if (playerData.playerNumber == playerNumber && !playerData.isPlaced) {
             playerData.position = {x, y};
-            playerData.object->enabled = true; // enable player once it is placed on the board
-            moveToTile(playerData.object, x, y);
+            playerData.isPlaced = true;
+            _messageBus->publish<StateChangedMessage>(
+                {}); // trigger view update after placing worker
             break;
         }
     }
     // assuming players place all their workers at once, before the other one starts:
     auto allWorkersPlaced = true;
     for (const auto &playerData : _gameStateData.workers) {
-        if (!playerData.object->enabled && playerData.playerNumber == playerNumber) {
+        if (!playerData.isPlaced && playerData.playerNumber == playerNumber) {
             allWorkersPlaced = false;
             break;
         }
@@ -168,16 +215,6 @@ WorkerData &TurnSystem::getSelectedWorker() {
         }
     }
     throw std::runtime_error("No worker is currently selected");
-}
-
-void TurnSystem::moveToTile(engine::GameObject *player, int x, int y) {
-    auto tile = _gameStateData.tileData[{x, y}].tileObject;
-    if (tile == nullptr) {
-        printf("No tile at (%d, %d)\n", x, y);
-        return;
-    }
-    player->localTransform.position = {tile->localTransform.position.x,
-                                       tile->localTransform.position.y};
 }
 
 void TurnSystem::updatePossibleActions() {
@@ -233,7 +270,7 @@ void TurnSystem::resetGame() {
     for (auto &workerData : _gameStateData.workers) {
         workerData.isSelected = false;
         workerData.position = {0, 0};
-        workerData.object->enabled = false;
+        workerData.isPlaced = false;
     }
     // default select the first worker of player 1 at the start of the game
     _gameStateData.workers[0].isSelected = true;
@@ -243,5 +280,6 @@ void TurnSystem::resetGame() {
         data.buildingLevel = BuildingLevel::None;
         data.highlight = HighlightType::None;
     }
+    _messageBus->publish<StateChangedMessage>({}); // trigger view update after resetting game state
 }
 } // namespace game

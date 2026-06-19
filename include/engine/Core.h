@@ -23,7 +23,7 @@ class Core {
     Core(WindowConfig config)
         : _window(sf::VideoMode({config.width, config.height}), config.title,
                   sf::Style::Titlebar | sf::Style::Close),
-          _context{.window = &_window} {}
+          _context{.window = &_window, .messageBus = &_messageBus} {}
 
     /// Loads a scene into the engine
     ///
@@ -72,5 +72,6 @@ class Core {
     GameObject _root{};
     sf::RenderWindow _window;
     Context _context{};
+    MessageBus _messageBus{};
 };
 } // namespace engine

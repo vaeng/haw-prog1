@@ -54,6 +54,7 @@ add_executable(santorini
     src/game/GameManager.cpp
     src/game/TurnSystem.cpp
     src/game/GameView.cpp
+    src/game/InputSystem.cpp
 )
 
 # ------------------------------------------------------------

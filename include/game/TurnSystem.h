@@ -1,5 +1,7 @@
 #pragma once
 
+#include "engine/MessageBus.h"
+#include "game/GameMessages.h"
 #include "game/GameState.h"
 
 namespace game {
@@ -11,6 +13,9 @@ class TurnSystem {
     TurnSystem(GameStateData &gameStateData, const BoardProperties &boardProperties)
         : _gameStateData(gameStateData), _boardProperties(boardProperties) {};
 
+    void setup(engine::MessageBus *bus);
+
+  private:
     /// Check if the player can build on the tile at (x, y)
     ///
     /// Rules for building:
@@ -32,6 +37,7 @@ class TurnSystem {
     bool isTileAdjacentToPlayer(int x, int y);
     bool isGameWon();
     void progressState();
+    void resetGame();
 
     void tryMovePlayer(int x, int y);
     void moveToTile(engine::GameObject *player, int x, int y);
@@ -40,13 +46,15 @@ class TurnSystem {
     void placeBuilding(int x, int y);
     void selectWorker(int playerNumber, int x, int y);
     void updatePossibleActions();
-    void resetGame();
+
+    void onTileClicked(TileClickedMessage message);
 
     WorkerData &getSelectedWorker();
-
-  private:
     GameStateData &_gameStateData;
     const BoardProperties &_boardProperties;
+    engine::MessageBus *_messageBus{nullptr};
+    engine::Connection _tileClickedConnection;
+    engine::Connection _gameRestartedConnection;
 };
 
 } // namespace game

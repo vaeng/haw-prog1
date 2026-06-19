@@ -7,6 +7,6 @@ namespace engine {
 
 struct Context {
     sf::RenderWindow *window{nullptr};
-    MessageBus messageBus{};
+    MessageBus *messageBus{nullptr};
 };
 } // namespace engine

@@ -17,21 +17,29 @@ struct Subscriber {
 class MessageBus;
 
 struct Connection {
-    HandlerID id;
-    MessageBus *bus;
+    HandlerID id{};
+    MessageBus *bus{nullptr};
+
+    Connection() = default;
+    Connection(HandlerID id, MessageBus *bus) : id(id), bus(bus) {}
     ~Connection();
+    Connection(Connection &&other) noexcept;
+    Connection &operator=(Connection &&other) noexcept;
+    Connection(const Connection &) = delete;
+    Connection &operator=(const Connection &) = delete;
 };
 
 class MessageBus {
   public:
     template <typename MessageType> using HandlerFunc = std::function<void(const MessageType &)>;
-    template <typename MessageType> Connection subscribe(HandlerFunc<MessageType> handler) {
+    template <typename MessageType>
+    [[nodiscard]] Connection subscribe(HandlerFunc<MessageType> handler) {
         _nextHandlerID++;
         _handlers[typeid(MessageType)].push_back(
             Subscriber{.id = _nextHandlerID, .func = [handler](const void *msg) {
                            handler(*static_cast<const MessageType *>(msg));
                        }});
-        return Connection{.id = _nextHandlerID, .bus = this};
+        return Connection{_nextHandlerID, this};
     }
     template <typename MessageType> void publish(const MessageType &message) {
         auto it = _handlers.find(std::type_index(typeid(MessageType)));
