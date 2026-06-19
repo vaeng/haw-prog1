@@ -23,6 +23,7 @@ add_library(engine
     src/engine/GameObject.cpp
     src/engine/Vector2.cpp
     src/engine/RenderComponent.cpp
+    src/engine/MessageBus.cpp
 )
 
 target_compile_features(engine PUBLIC cxx_std_23)
@@ -51,6 +52,7 @@ add_executable(santorini
     src/main.cpp
     src/game/Scene.cpp
     src/game/GameManager.cpp
+    src/game/TurnSystem.cpp
 )
 
 # ------------------------------------------------------------
