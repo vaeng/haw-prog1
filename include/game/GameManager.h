@@ -14,6 +14,7 @@ struct BoardProperties {
     int numTiles{};       /// number of tiles in one row/column of the board
     int screenTileSize{}; /// size of each tile in actual pixels on the screen (including scale of
                           /// parent), assumes square tiles
+    int workersPerPlayer{};
     engine::Vector2
         boardTopLeft{}; /// position of the top left corner of the board in window coordinates
     engine::Vector2 boardBottomRight{}; /// position of the bottom right corner of the board in
@@ -34,17 +35,12 @@ class GameManager : public engine::Component {
 
   private:
     BoardProperties _boardProperties{};
+    GameStateData _gameStateData{};
     int _textureTileSize{}; /// size of the board tiles in pixels, hardcoded in start() for now,
                             /// could be made configurable
-    Turn _gameState{Turn::Player1Placement}; /// current state of the game
-
-    int _workersPerPlayer{};
-    std::vector<WorkerData> _players;
-    std::map<std::pair<int, int>, TileData> _tileData{};
     engine::GameObject *_activePlayerLabel{nullptr};
     engine::GameObject *_gameStateLabel{nullptr};
     engine::GameObject *_restartLabel{nullptr};
-    WorkerData *_selectedWorker{nullptr};
 
     void computeBoardBounds();
     void createPlayers();
@@ -81,6 +77,8 @@ class GameManager : public engine::Component {
     void highlightPossibleActions();
     void restartGame();
     void selectWorker(int playerNumber, int x, int y);
+
+    WorkerData &getSelectedWorker();
 
     std::tuple<bool, int, int> getTileUnderMouse(int mouseX, int mouseY);
 };

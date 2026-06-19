@@ -41,8 +41,8 @@ struct WorkerData {
 };
 
 struct GameStateData {
-    Turn turn{};
-    std::vector<WorkerData> workers;
-    std::map<std::pair<int, int>, TileData> tileData;
+    Turn turn{Turn::Player1Placement}; /// current turn
+    std::vector<WorkerData> workers{};
+    std::map<std::pair<int, int>, TileData> tileData{};
 };
 } // namespace game

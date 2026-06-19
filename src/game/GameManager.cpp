@@ -6,7 +6,10 @@
 namespace game {
 
 GameManager::GameManager(int workersPerPlayer, int numTiles)
-    : _workersPerPlayer(workersPerPlayer), _boardProperties({.numTiles = numTiles}) {
+    : _boardProperties({
+          .numTiles = numTiles,
+          .workersPerPlayer = workersPerPlayer,
+      }) {
     if (numTiles % 2 == 0) {
         throw std::runtime_error("Number of tiles must be odd to have a center tile");
     }
@@ -33,7 +36,7 @@ void GameManager::createBoard() {
     for (int i = -tilesPerSide; i <= tilesPerSide; ++i) {
         for (int j = -tilesPerSide; j <= tilesPerSide; ++j) {
             auto tile = std::make_unique<engine::GameObject>();
-            _tileData[{i, j}].tileObject = tile.get();
+            _gameStateData.tileData[{i, j}].tileObject = tile.get();
             tile->localTransform.position = {.x = i * spacing, .y = j * spacing};
             auto renderComponent = tile->addComponent<engine::RenderComponent>(tiles);
             renderComponent->setTextureRect(
@@ -45,7 +48,7 @@ void GameManager::createBoard() {
 
 void GameManager::createPlayers() {
     auto playerTexture = std::make_shared<engine::Texture>("assets/textures/rogues.png");
-    for (int i = 0; i < _workersPerPlayer; ++i) {
+    for (int i = 0; i < _boardProperties.workersPerPlayer; ++i) {
         auto player1 = std::make_unique<engine::GameObject>();
         player1->enabled = false; // disable player until they are placed on the board
         auto player1RenderComponent =
@@ -55,7 +58,8 @@ void GameManager::createPlayers() {
                                                 .width = _textureTileSize,
                                                 .height = _textureTileSize});
 
-        _players.push_back({.position = {}, .object = player1.get(), .playerNumber = 1});
+        _gameStateData.workers.push_back(
+            {.position = {}, .object = player1.get(), .playerNumber = 1});
         owner->addChild(std::move(player1));
 
         auto player2 = std::make_unique<engine::GameObject>();
@@ -66,10 +70,11 @@ void GameManager::createPlayers() {
                                                 .top = _textureTileSize * 2,
                                                 .width = _textureTileSize,
                                                 .height = _textureTileSize});
-        _players.push_back({.position = {}, .object = player2.get(), .playerNumber = 2});
+        _gameStateData.workers.push_back(
+            {.position = {}, .object = player2.get(), .playerNumber = 2});
         owner->addChild(std::move(player2));
     }
-    _selectedWorker = &_players[0]; // default to player 1 selected at start of game
+    _gameStateData.workers[0].isSelected = true; // default to player 1 selected at start of game
 }
 
 void GameManager::computeBoardBounds() {
@@ -86,7 +91,7 @@ void GameManager::computeBoardBounds() {
 }
 
 void GameManager::moveToTile(engine::GameObject *player, int x, int y) {
-    auto tile = _tileData[{x, y}].tileObject;
+    auto tile = _gameStateData.tileData[{x, y}].tileObject;
     if (tile == nullptr) {
         printf("No tile at (%d, %d)\n", x, y);
         return;
@@ -96,7 +101,7 @@ void GameManager::moveToTile(engine::GameObject *player, int x, int y) {
 }
 
 bool GameManager::isTileAdjacentToPlayer(int x, int y) {
-    auto playerPos = _selectedWorker->position;
+    auto playerPos = getSelectedWorker().position;
     int dx = std::abs(playerPos.first - x);
     int dy = std::abs(playerPos.second - y);
     return (dx <= 1 && dy <= 1) &&
@@ -104,19 +109,21 @@ bool GameManager::isTileAdjacentToPlayer(int x, int y) {
 }
 
 std::unique_ptr<engine::Component> GameManager::clone() const {
-    return std::make_unique<GameManager>(_workersPerPlayer, _boardProperties.numTiles);
+    return std::make_unique<GameManager>(_boardProperties.workersPerPlayer,
+                                         _boardProperties.numTiles);
 }
 
 bool GameManager::canPlayerBuild(int x, int y) {
     bool occupiedByAnyWorker = false;
-    for (const auto &playerData : _players) {
+    for (const auto &playerData : _gameStateData.workers) {
         if (x == playerData.position.first && y == playerData.position.second) {
             occupiedByAnyWorker = true;
             break;
         }
     }
 
-    return isTileAdjacentToPlayer(x, y) && _tileData[{x, y}].buildingLevel != BuildingLevel::Dome &&
+    return isTileAdjacentToPlayer(x, y) &&
+           _gameStateData.tileData[{x, y}].buildingLevel != BuildingLevel::Dome &&
            !occupiedByAnyWorker;
 }
 
@@ -126,7 +133,7 @@ bool GameManager::canPlayerMove(int x, int y) {
         return false;
     }
     bool occupiedByAnyWorker = false;
-    for (const auto &playerData : _players) {
+    for (const auto &playerData : _gameStateData.workers) {
         if (x == playerData.position.first && y == playerData.position.second) {
             occupiedByAnyWorker = true;
             break;
@@ -135,13 +142,14 @@ bool GameManager::canPlayerMove(int x, int y) {
     if (occupiedByAnyWorker) {
         return false;
     }
-    auto targetLevel = _tileData[{x, y}].buildingLevel;
+    auto targetLevel = _gameStateData.tileData[{x, y}].buildingLevel;
     bool hasDome = targetLevel == BuildingLevel::Dome;
     if (hasDome) {
         return false;
     }
     BuildingLevel currentLevel =
-        _tileData[{_selectedWorker->position.first, _selectedWorker->position.second}]
+        _gameStateData
+            .tileData[{getSelectedWorker().position.first, getSelectedWorker().position.second}]
             .buildingLevel;
 
     if (static_cast<int>(targetLevel) - static_cast<int>(currentLevel) > 1) {
@@ -152,12 +160,13 @@ bool GameManager::canPlayerMove(int x, int y) {
 
 void GameManager::tryMovePlayer(int x, int y) {
     if (canPlayerMove(x, y)) {
-        _selectedWorker->position = {x, y};
-        _selectedWorker->object->enabled = true; // enable player once it is placed on the board
-        moveToTile(_selectedWorker->object, x, y);
+        getSelectedWorker().position = {x, y};
+        getSelectedWorker().object->enabled = true; // enable player once it is placed on the board
+        moveToTile(getSelectedWorker().object, x, y);
 
         if (isGameWon()) {
-            _gameState = (_selectedWorker->playerNumber == 1) ? Turn::Player1Win : Turn::Player2Win;
+            _gameStateData.turn =
+                (getSelectedWorker().playerNumber == 1) ? Turn::Player1Win : Turn::Player2Win;
         } else {
             progressState();
         }
@@ -165,19 +174,20 @@ void GameManager::tryMovePlayer(int x, int y) {
 }
 
 bool GameManager::isGameWon() {
-    return _tileData[{_selectedWorker->position.first, _selectedWorker->position.second}]
+    return _gameStateData
+               .tileData[{getSelectedWorker().position.first, getSelectedWorker().position.second}]
                .buildingLevel == BuildingLevel::Level3;
 }
 
 void GameManager::placeWorker(int playerNumber, int x, int y) {
     // check if tile is already occupied by another worker
-    for (const auto &playerData : _players) {
+    for (const auto &playerData : _gameStateData.workers) {
         if (x == playerData.position.first && y == playerData.position.second) {
             return; // tile is occupied, do not place worker
         }
     }
     // grab first worker that matches the player number and is not yet placed on the board
-    for (auto &playerData : _players) {
+    for (auto &playerData : _gameStateData.workers) {
         if (playerData.playerNumber == playerNumber && playerData.object->enabled == false) {
             playerData.position = {x, y};
             playerData.object->enabled = true; // enable player once it is placed on the board
@@ -187,7 +197,7 @@ void GameManager::placeWorker(int playerNumber, int x, int y) {
     }
     // assuming players place all their workers at once, before the other one starts:
     auto allWorkersPlaced = true;
-    for (const auto &playerData : _players) {
+    for (const auto &playerData : _gameStateData.workers) {
         if (!playerData.object->enabled && playerData.playerNumber == playerNumber) {
             allWorkersPlaced = false;
             break;
@@ -199,8 +209,8 @@ void GameManager::placeWorker(int playerNumber, int x, int y) {
 }
 
 void GameManager::placeBuilding(int x, int y) {
-    auto currentLevel = _tileData[{x, y}].buildingLevel;
-    auto tile = _tileData[{x, y}].tileObject;
+    auto currentLevel = _gameStateData.tileData[{x, y}].buildingLevel;
+    auto tile = _gameStateData.tileData[{x, y}].tileObject;
     if (tile == nullptr) {
         return;
     }
@@ -214,7 +224,7 @@ void GameManager::placeBuilding(int x, int y) {
         }
         rc->setTextureRect(previousRect);
     }
-    _tileData[{x, y}].buildingLevel =
+    _gameStateData.tileData[{x, y}].buildingLevel =
         static_cast<BuildingLevel>(static_cast<int>(currentLevel) + 1);
     progressState();
 }
@@ -236,7 +246,7 @@ void GameManager::handleEvent(const std::optional<sf::Event> &event, float delta
         }
     } else if (const auto *keyPressed = event->getIf<sf::Event::KeyPressed>()) {
         if (keyPressed->code == sf::Keyboard::Key::R &&
-            (_gameState == Turn::Player1Win || _gameState == Turn::Player2Win)) {
+            (_gameStateData.turn == Turn::Player1Win || _gameStateData.turn == Turn::Player2Win)) {
             restartGame();
         }
     }
@@ -264,30 +274,30 @@ void GameManager::onHoverOvertile(int x, int y) {
 }
 
 void GameManager::progressState() {
-    switch (_gameState) {
+    switch (_gameStateData.turn) {
     case Turn::Player1Placement:
-        _gameState = Turn::Player2Placement;
+        _gameStateData.turn = Turn::Player2Placement;
         break;
     case Turn::Player2Placement:
-        _gameState = Turn::Player1Select;
+        _gameStateData.turn = Turn::Player1Select;
         break;
     case Turn::Player1Select:
-        _gameState = Turn::Player1Movement;
+        _gameStateData.turn = Turn::Player1Movement;
         break;
     case Turn::Player1Movement:
-        _gameState = Turn::Player1Build;
+        _gameStateData.turn = Turn::Player1Build;
         break;
     case Turn::Player1Build:
-        _gameState = Turn::Player2Select;
+        _gameStateData.turn = Turn::Player2Select;
         break;
     case Turn::Player2Select:
-        _gameState = Turn::Player2Movement;
+        _gameStateData.turn = Turn::Player2Movement;
         break;
     case Turn::Player2Movement:
-        _gameState = Turn::Player2Build;
+        _gameStateData.turn = Turn::Player2Build;
         break;
     case Turn::Player2Build:
-        _gameState = Turn::Player1Select; // loop back to movement phase
+        _gameStateData.turn = Turn::Player1Select; // loop back to movement phase
         break;
     default:
         break; // do nothing in win states
@@ -296,30 +306,31 @@ void GameManager::progressState() {
 
 /// Forward clicked tile positions to the appropriate handler based on the current game state
 void GameManager::onClickTile(int x, int y) {
-    if (_gameState == Turn::Player1Select) {
+    if (_gameStateData.turn == Turn::Player1Select) {
         selectWorker(1, x, y);
-    } else if (_gameState == Turn::Player2Select) {
+    } else if (_gameStateData.turn == Turn::Player2Select) {
         selectWorker(2, x, y);
-    } else if (_gameState == Turn::Player1Placement) {
+    } else if (_gameStateData.turn == Turn::Player1Placement) {
         placeWorker(1, x, y);
-    } else if (_gameState == Turn::Player2Placement) {
+    } else if (_gameStateData.turn == Turn::Player2Placement) {
         placeWorker(2, x, y);
-    } else if (_gameState == Turn::Player1Movement) {
+    } else if (_gameStateData.turn == Turn::Player1Movement) {
         tryMovePlayer(x, y);
-    } else if (_gameState == Turn::Player2Movement) {
+    } else if (_gameStateData.turn == Turn::Player2Movement) {
         tryMovePlayer(x, y);
-    } else if (_gameState == Turn::Player1Build) {
+    } else if (_gameStateData.turn == Turn::Player1Build) {
         trySetBuilding(x, y);
-    } else if (_gameState == Turn::Player2Build) {
+    } else if (_gameStateData.turn == Turn::Player2Build) {
         trySetBuilding(x, y);
     }
 }
 
 void GameManager::selectWorker(int playerNumber, int x, int y) {
-    for (auto &playerData : _players) {
-        if (playerData.playerNumber == playerNumber && playerData.position.first == x &&
-            playerData.position.second == y) {
-            _selectedWorker = &playerData;
+    for (auto &workerData : _gameStateData.workers) {
+        if (workerData.playerNumber == playerNumber && workerData.position.first == x &&
+            workerData.position.second == y) {
+            getSelectedWorker().isSelected = false;
+            workerData.isSelected = true;
             progressState();
             break;
         }
@@ -334,12 +345,12 @@ void GameManager::trySetBuilding(int x, int y) {
 
 void GameManager::highlightPossibleActions() {
     // Clear all highlights first
-    for (auto &[_, data] : _tileData) {
+    for (auto &[_, data] : _gameStateData.tileData) {
         data.highlight = HighlightType::None;
     }
-    switch (_gameState) {
+    switch (_gameStateData.turn) {
     case Turn::Player1Movement:
-        for (auto &[tilePos, data] : _tileData) {
+        for (auto &[tilePos, data] : _gameStateData.tileData) {
             if (canPlayerMove(tilePos.first, tilePos.second)) {
                 data.highlight = HighlightType::CanMove;
             } else if (isTileAdjacentToPlayer(tilePos.first, tilePos.second)) {
@@ -348,7 +359,7 @@ void GameManager::highlightPossibleActions() {
         }
         break;
     case Turn::Player1Build:
-        for (auto &[tilePos, data] : _tileData) {
+        for (auto &[tilePos, data] : _gameStateData.tileData) {
             if (canPlayerBuild(tilePos.first, tilePos.second)) {
                 data.highlight = HighlightType::CanBuild;
             } else if (isTileAdjacentToPlayer(tilePos.first, tilePos.second)) {
@@ -357,7 +368,7 @@ void GameManager::highlightPossibleActions() {
         }
         break;
     case Turn::Player2Movement:
-        for (auto &[tilePos, data] : _tileData) {
+        for (auto &[tilePos, data] : _gameStateData.tileData) {
             if (canPlayerMove(tilePos.first, tilePos.second)) {
                 data.highlight = HighlightType::CanMove;
             } else if (isTileAdjacentToPlayer(tilePos.first, tilePos.second)) {
@@ -366,7 +377,7 @@ void GameManager::highlightPossibleActions() {
         }
         break;
     case Turn::Player2Build:
-        for (auto &[tilePos, data] : _tileData) {
+        for (auto &[tilePos, data] : _gameStateData.tileData) {
             if (canPlayerBuild(tilePos.first, tilePos.second)) {
                 data.highlight = HighlightType::CanBuild;
             } else if (isTileAdjacentToPlayer(tilePos.first, tilePos.second)) {
@@ -377,7 +388,7 @@ void GameManager::highlightPossibleActions() {
     default:
         break; // do nothing in placement and win states
     }
-    for (auto &[_, data] : _tileData) {
+    for (auto &[_, data] : _gameStateData.tileData) {
         switch (data.highlight) {
         case HighlightType::CanMove:
             data.tileObject->getComponent<engine::RenderComponent>()->setTint({150, 150, 255});
@@ -441,7 +452,7 @@ void GameManager::updateLabels() {
     auto moveRect = engine::Rect{.left = 0, .top = 24 * 4, .width = 300, .height = 20};
     auto buildRect = engine::Rect{.left = 0, .top = 24 * 5, .width = 300, .height = 20};
     auto winnerRect = engine::Rect{.left = 0, .top = 24 * 6, .width = 300, .height = 20};
-    switch (_gameState) {
+    switch (_gameStateData.turn) {
     case Turn::Player1Placement:
     case Turn::Player1Movement:
     case Turn::Player1Build:
@@ -456,7 +467,7 @@ void GameManager::updateLabels() {
         break;
     }
 
-    switch (_gameState) {
+    switch (_gameStateData.turn) {
     case Turn::Player1Placement:
     case Turn::Player2Placement:
         _restartLabel->enabled = false;
@@ -484,15 +495,17 @@ void GameManager::updateLabels() {
 
 void GameManager::restartGame() {
     // Reset game state
-    _gameState = Turn::Player1Placement;
-    _selectedWorker = nullptr;
-    for (auto &playerData : _players) {
-        playerData.position = {0, 0};
-        playerData.object->enabled = false;
+    _gameStateData.turn = Turn::Player1Placement;
+    for (auto &workerData : _gameStateData.workers) {
+        workerData.isSelected = false;
+        workerData.position = {0, 0};
+        workerData.object->enabled = false;
     }
+    // default select the first worker of player 1 at the start of the game
+    _gameStateData.workers[0].isSelected = true;
 
     // Reset tile data and visuals
-    for (auto &[tilePos, data] : _tileData) {
+    for (auto &[tilePos, data] : _gameStateData.tileData) {
         data.buildingLevel = BuildingLevel::None;
         data.highlight = HighlightType::None;
         auto rc = data.tileObject->getComponent<engine::RenderComponent>();
@@ -505,4 +518,13 @@ void GameManager::restartGame() {
     updateLabels();
 }
 const BoardProperties &GameManager::getBoardProperties() const { return _boardProperties; }
+
+WorkerData &GameManager::getSelectedWorker() {
+    for (auto &worker : _gameStateData.workers) {
+        if (worker.isSelected) {
+            return worker;
+        }
+    }
+    throw std::runtime_error("No worker is currently selected");
+}
 } // namespace game
