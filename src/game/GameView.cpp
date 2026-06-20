@@ -97,25 +97,18 @@ void GameView::createPlayers(engine::GameObject *owner) {
 void GameView::setupLabels(engine::GameObject *owner) {
     auto textTexture = std::make_shared<engine::Texture>("assets/textures/Labels-sheet.png");
     auto activePlayerLabel = std::make_unique<engine::GameObject>();
-    activePlayerLabel->localTransform.position = {0, (float)(_boardProperties.numTiles / 2 + 1) *
-                                                         _boardProperties.screenTileSize};
-    activePlayerLabel->localTransform.scale = {0.5f, 0.5f};
+    activePlayerLabel->localTransform.position = {0, -(float)(_boardProperties.numTiles / 2 + 1) -
+                                                         _boardProperties.screenTileSize * 3.1f};
     auto activePlayerLabelRenderComponent =
-        activePlayerLabel->addComponent<engine::RenderComponent>(
-            textTexture, 10, 0, engine::Vector2{.x = 1.0f, .y = 0.0f});
-    activePlayerLabelRenderComponent->setTextureRect(
-        {.left = 0, .top = 0, .width = 150, .height = 20});
+        activePlayerLabel->addComponent<engine::RenderComponent>(textTexture, 10);
     _activePlayerLabel = activePlayerLabel.get();
     owner->addChild(std::move(activePlayerLabel));
 
     auto gameStateLabel = std::make_unique<engine::GameObject>();
-    gameStateLabel->localTransform.position = {0, (float)(_boardProperties.numTiles / 2 + 1) *
-                                                      _boardProperties.screenTileSize};
-    gameStateLabel->localTransform.scale = {0.5f, 0.5f};
-    auto gameStateLabelRenderComponent = gameStateLabel->addComponent<engine::RenderComponent>(
-        textTexture, 10, 0, engine::Vector2{.x = 0.0f, .y = 0.0f});
-    gameStateLabelRenderComponent->setTextureRect(
-        {.left = 0, .top = 24 * 2, .width = 300, .height = 20});
+    gameStateLabel->localTransform.position = {0, -(float)(_boardProperties.numTiles / 2 + 1) -
+                                                      _boardProperties.screenTileSize * 2.5f};
+    auto gameStateLabelRenderComponent =
+        gameStateLabel->addComponent<engine::RenderComponent>(textTexture, 10);
     _gameStateLabel = gameStateLabel.get();
     owner->addChild(std::move(gameStateLabel));
 
@@ -134,7 +127,7 @@ void GameView::setupLabels(engine::GameObject *owner) {
 
 void GameView::updateLabels() {
     auto labelHeight = 32;
-    auto player1turnRect = engine::Rect{.left = 0, .top = 0, .width = 29, .height = labelHeight};
+    auto player1turnRect = engine::Rect{.left = 0, .top = 0, .width = 92, .height = labelHeight};
     auto player2turnRect =
         engine::Rect{.left = 0, .top = labelHeight * 1, .width = 93, .height = labelHeight};
     auto placeRect =
