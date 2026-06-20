@@ -30,7 +30,7 @@ struct FrameInfo {
 
 class AnimationComponent : public Component {
   public:
-    AnimationComponent(const FrameInfo &info) : _currentFrame(0), _frameInfo(info) {}
+    AnimationComponent(const FrameInfo &info = FrameInfo{}) : _currentFrame(0), _frameInfo(info) {}
     void start() override {
         _render = owner->getComponent<RenderComponent>();
         if (_render == nullptr) {
@@ -39,14 +39,23 @@ class AnimationComponent : public Component {
     }
 
     void update(float dt) override {
-        if (_render == nullptr) {
+        if (_render == nullptr || !_isPlaying) {
             return;
         }
         _timeSinceLastFrame += dt;
-
+        // check if it's time to advance to the next frame
         if (_timeSinceLastFrame >= 1.0f / _frameInfo.framesPerSecond) {
-            _currentFrame = (_currentFrame + 1) % (_frameInfo.totalFrames);
             _timeSinceLastFrame = 0;
+            _currentFrame++;
+        }
+        // check if we need to loop back to the beginning of the animation
+        if (_currentFrame >= _frameInfo.totalFrames) {
+            if (_loop) {
+                _currentFrame = 0;
+            } else {
+                _currentFrame = _frameInfo.totalFrames - 1; // stay on the last frame
+                _isPlaying = false;                         // stop the animation
+            }
         }
         int left = (_currentFrame % _frameInfo.horizontalFrameCount) *
                        (_frameInfo.width + _frameInfo.horizontalPadding) +
@@ -59,7 +68,10 @@ class AnimationComponent : public Component {
     }
 
     [[nodiscard]] auto getFrameInfo() const -> FrameInfo { return _frameInfo; }
-    auto setFrameInfo(const FrameInfo &info) { _frameInfo = info; }
+    auto setFrameInfo(const FrameInfo &info) {
+        stop();
+        _frameInfo = info;
+    }
 
     [[nodiscard]] std::unique_ptr<Component> clone() const override {
         auto cloned = std::make_unique<AnimationComponent>(_frameInfo);
@@ -67,11 +79,23 @@ class AnimationComponent : public Component {
         cloned->_timeSinceLastFrame = _timeSinceLastFrame;
         return cloned;
     }
+    [[nodiscard]] bool isPlaying() const { return _isPlaying; }
+    void play() { _isPlaying = true; }
+    void pause() { _isPlaying = false; }
+    void stop() {
+        _isPlaying = false;
+        _currentFrame = 0;
+        _timeSinceLastFrame = 0;
+    }
+    [[nodiscard]] bool isLooping() const { return _loop; }
+    void setLooping(bool loop) { _loop = loop; }
 
   private:
     RenderComponent *_render{nullptr};
     FrameInfo _frameInfo{};
     int _currentFrame{};
     float _timeSinceLastFrame{};
+    bool _isPlaying{false};
+    bool _loop{false};
 };
 } // namespace engine
