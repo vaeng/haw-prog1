@@ -1,5 +1,7 @@
 #pragma once
 
+#include "game/GameState.h"
+
 namespace game {
 
 // Message published when mouse is clicked.
@@ -32,5 +34,25 @@ struct StateChangedMessage {};
 
 // Published when the game should be restarted
 struct RestartGameMessage {};
+
+struct BuildingPlacedMessage {
+    int x;
+    int y;
+    BuildingLevel level;
+};
+
+struct WorkerMovedMessage {
+    int workerId;
+    int fromX;
+    int fromY;
+    int toX;
+    int toY;
+};
+
+struct WorkerPlacedMessage {
+    int workerId;
+    int x;
+    int y;
+};
 
 } // namespace game

@@ -205,6 +205,8 @@ void TurnSystem::placeBuilding(int x, int y) {
     auto currentLevel = _gameStateData.tileData[{x, y}].buildingLevel;
     _gameStateData.tileData[{x, y}].buildingLevel =
         static_cast<BuildingLevel>(static_cast<int>(currentLevel) + 1);
+    _messageBus->publish<BuildingPlacedMessage>(
+        {x, y, _gameStateData.tileData[{x, y}].buildingLevel});
     progressState();
 }
 

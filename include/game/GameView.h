@@ -24,6 +24,9 @@ class GameView {
     const BoardProperties &_boardProperties;
     engine::MessageBus *_messageBus{nullptr};
     engine::Connection _stateChangedConnection;
+    engine::Connection _buildingPlacedConnection;
+    engine::Connection _workerMovedConnection;
+    engine::Connection _workerPlacedConnection;
 
     int _textureTileSize{32}; /// size of the board tiles in pixels, hardcoded for now
     int _playerSpriteHeight{48}; // height of player sprites in pixels, hardcoded for now
@@ -51,6 +54,7 @@ class GameView {
     void createPlayers(engine::GameObject *owner);
     void createBoard(engine::GameObject *owner);
     void fillBuildingTextureRects();
+    void AnimatedBuildingPlacement(int x, int y, BuildingLevel level);
 };
 
 } // namespace game

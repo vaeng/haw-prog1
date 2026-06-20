@@ -1,4 +1,5 @@
 #include "game/GameView.h"
+#include "engine/AnimationComponent.h"
 #include "engine/GameObject.h"
 #include "engine/RenderComponent.h"
 #include "game/GameManager.h"
@@ -15,6 +16,10 @@ void GameView::setup(engine::GameObject *owner, engine::MessageBus *bus) {
             highlightPossibleActions();
             updateBoard();
             updatePlayerPositions();
+        });
+    _buildingPlacedConnection =
+        _messageBus->subscribe<BuildingPlacedMessage>([this](const BuildingPlacedMessage &message) {
+            AnimatedBuildingPlacement(message.x, message.y, message.level);
         });
     fillBuildingTextureRects();
 }
@@ -57,7 +62,7 @@ void GameView::createBoard(engine::GameObject *owner) {
             buildingRC->setTextureRect(_buildingTextureRects[BuildingLevel::None]);
             buildingRC->setPivot(
                 {.x = 0.5f, .y = 0.6f}); // adjust for building height and center on tile
-
+            building->addComponent<engine::AnimationComponent>();
             owner->addChild(std::move(building));
         }
     }
@@ -230,6 +235,10 @@ void GameView::updateBoard() {
             continue;
         }
         auto rc = building->getComponent<engine::RenderComponent>();
+        auto ac = building->getComponent<engine::AnimationComponent>();
+        if (ac != nullptr && ac->isPlaying()) {
+            continue; // skip updating the texture rect if the building animation is still playing
+        }
         if (rc != nullptr) {
             rc->setTextureRect(_buildingTextureRects[currentLevel]);
         }
@@ -262,5 +271,53 @@ void GameView::updatePlayerPositions() {
                                                .width = _textureTileSize,
                                                .height = _playerSpriteHeight});
     }
+}
+
+void GameView::AnimatedBuildingPlacement(int x, int y, BuildingLevel level) {
+    auto building = _buildings[{x, y}];
+    if (building == nullptr || level == BuildingLevel::None) {
+        return;
+    }
+    auto animationComponent = building->getComponent<engine::AnimationComponent>();
+    if (animationComponent == nullptr) {
+        return;
+    }
+    auto buildingHeight = (int)(_textureTileSize * 1.25f);
+    auto getBuildingFrameInfo = [&](int row, int column, int totalFrames) {
+        return engine::FrameInfo{
+            .framesPerSecond = 8,
+            .totalFrames = totalFrames,
+            .width = _textureTileSize,
+            .height = buildingHeight,
+            .verticalOffset = row * buildingHeight,
+            .horizontalOffset = column * _textureTileSize,
+            .horizontalFrameCount = totalFrames,
+            .verticalFrameCount = 1,
+            .horizontalPadding = 0,
+            .verticalPadding = 0,
+        };
+    };
+    auto frameInfo = engine::FrameInfo{};
+
+    switch (level) {
+    case BuildingLevel::None:
+        frameInfo = getBuildingFrameInfo(
+            0, 1, 1); // use the an empty tile in the spritesheet for the None level
+        break;
+    case BuildingLevel::Level1:
+        frameInfo = getBuildingFrameInfo(4, 0, 5);
+        break;
+    case BuildingLevel::Level2:
+        frameInfo = getBuildingFrameInfo(5, 0, 4);
+        break;
+    case BuildingLevel::Level3:
+        frameInfo = getBuildingFrameInfo(6, 0, 4);
+        break;
+    case BuildingLevel::Dome:
+        frameInfo = getBuildingFrameInfo(7, 0, 8);
+        break;
+    }
+    animationComponent->setFrameInfo(frameInfo);
+    animationComponent->play();
 }
 } // namespace game
