@@ -51,8 +51,6 @@ struct WorkerMovedMessage {
 
 struct WorkerPlacedMessage {
     int workerId;
-    int x;
-    int y;
 };
 
 } // namespace game

@@ -177,6 +177,8 @@ void TurnSystem::placeWorker(int playerNumber, int x, int y) {
         if (playerData.playerNumber == playerNumber && !playerData.isPlaced) {
             playerData.position = {x, y};
             playerData.isPlaced = true;
+            _messageBus->publish<WorkerPlacedMessage>(
+                {playerData.id}); // trigger worker placement animation in view
             _messageBus->publish<StateChangedMessage>(
                 {}); // trigger view update after placing worker
             break;

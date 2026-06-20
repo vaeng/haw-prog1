@@ -56,7 +56,8 @@ class GameView {
     void createPlayers(engine::GameObject *owner);
     void createBoard(engine::GameObject *owner);
     void fillBuildingTextureRects();
-    void AnimatedBuildingPlacement(int x, int y, BuildingLevel level);
+    void animatedBuildingPlacement(int x, int y, BuildingLevel level);
+    void animatedWorkerPlacement(int workerId);
     void tileHoveredPreview(int x, int y);
 };
 

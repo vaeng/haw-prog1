@@ -19,10 +19,13 @@ void GameView::setup(engine::GameObject *owner, engine::MessageBus *bus) {
         });
     _buildingPlacedConnection =
         _messageBus->subscribe<BuildingPlacedMessage>([this](const BuildingPlacedMessage &message) {
-            AnimatedBuildingPlacement(message.x, message.y, message.level);
+            animatedBuildingPlacement(message.x, message.y, message.level);
         });
     _tileHoveredConnection = _messageBus->subscribe<TileHoveredMessage>(
         [this](const TileHoveredMessage &message) { tileHoveredPreview(message.x, message.y); });
+    _workerPlacedConnection = _messageBus->subscribe<WorkerPlacedMessage>(
+        [this](const WorkerPlacedMessage &message) { animatedWorkerPlacement(message.workerId); });
+    // trigger initial setup of labels and highlights based on initial game state
     fillBuildingTextureRects();
 }
 
@@ -79,12 +82,14 @@ void GameView::createPlayers(engine::GameObject *owner) {
     for (const auto &[id, position, selected, placed, playerNumber] : _gameStateData.workers) {
         auto worker = std::make_unique<engine::GameObject>();
         worker->enabled = false; // disable worker until they are placed on the board
+        worker->addComponent<engine::AnimationComponent>();
         if (playerNumber == 1) {
             auto workerRenderComponent =
                 worker->addComponent<engine::RenderComponent>(player1Texture, 30);
             workerRenderComponent->setTextureRect(
                 {.left = 0, .top = 0, .width = _textureTileSize, .height = _playerSpriteHeight});
             workerRenderComponent->setPivot({.x = 0.5f, .y = 0.666f});
+
         } else {
             auto workerRenderComponent =
                 worker->addComponent<engine::RenderComponent>(player2Texture, 30);
@@ -287,6 +292,10 @@ void GameView::updatePlayerPositions() {
         if (workerRenderComponent == nullptr) {
             continue;
         }
+        auto ac = _workerObjects[id]->getComponent<engine::AnimationComponent>();
+        if (ac != nullptr && ac->isPlaying()) {
+            continue; // skip updating the texture rect if the worker animation is still playing
+        }
         auto buildingLevel = _gameStateData.tileData[position].buildingLevel;
         workerRenderComponent->setTextureRect({.left = 0,
                                                .top = _playerSpriteHeight * (int)buildingLevel,
@@ -295,7 +304,7 @@ void GameView::updatePlayerPositions() {
     }
 }
 
-void GameView::AnimatedBuildingPlacement(int x, int y, BuildingLevel level) {
+void GameView::animatedBuildingPlacement(int x, int y, BuildingLevel level) {
     auto building = _buildings[{x, y}];
     if (building == nullptr || level == BuildingLevel::None) {
         return;
@@ -340,6 +349,31 @@ void GameView::AnimatedBuildingPlacement(int x, int y, BuildingLevel level) {
         break;
     }
     animationComponent->setFrameInfo(frameInfo);
+    animationComponent->play();
+}
+
+void GameView::animatedWorkerPlacement(int workerId) {
+    auto worker = _workerObjects[workerId];
+    if (worker == nullptr) {
+        return;
+    }
+    auto animationComponent = worker->getComponent<engine::AnimationComponent>();
+    if (animationComponent == nullptr) {
+        return;
+    }
+
+    animationComponent->setFrameInfo({
+        .framesPerSecond = 10,
+        .totalFrames = 7,
+        .width = _textureTileSize,
+        .height = _playerSpriteHeight,
+        .verticalOffset = 12 * _playerSpriteHeight,
+        .horizontalOffset = 0 * _textureTileSize,
+        .horizontalFrameCount = 7,
+        .verticalFrameCount = 1,
+        .horizontalPadding = 0,
+        .verticalPadding = 0,
+    });
     animationComponent->play();
 }
 
