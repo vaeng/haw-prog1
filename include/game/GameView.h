@@ -27,6 +27,7 @@ class GameView {
     engine::Connection _buildingPlacedConnection;
     engine::Connection _workerMovedConnection;
     engine::Connection _workerPlacedConnection;
+    engine::Connection _tileHoveredConnection;
 
     int _textureTileSize{32}; /// size of the board tiles in pixels, hardcoded for now
     int _playerSpriteHeight{48}; // height of player sprites in pixels, hardcoded for now
@@ -45,7 +46,8 @@ class GameView {
                         // worker positions
     std::map<BuildingLevel, engine::Rect>
         _buildingTextureRects; // map of building levels to their texture rects in the spritesheet
-
+    engine::GameObject *_player1MovePreview{nullptr};
+    engine::GameObject *_player2MovePreview{nullptr};
     void updateLabels();
     void updateBoard();
     void updatePlayerPositions();
@@ -55,6 +57,7 @@ class GameView {
     void createBoard(engine::GameObject *owner);
     void fillBuildingTextureRects();
     void AnimatedBuildingPlacement(int x, int y, BuildingLevel level);
+    void tileHoveredPreview(int x, int y);
 };
 
 } // namespace game

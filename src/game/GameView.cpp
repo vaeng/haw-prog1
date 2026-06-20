@@ -21,6 +21,8 @@ void GameView::setup(engine::GameObject *owner, engine::MessageBus *bus) {
         _messageBus->subscribe<BuildingPlacedMessage>([this](const BuildingPlacedMessage &message) {
             AnimatedBuildingPlacement(message.x, message.y, message.level);
         });
+    _tileHoveredConnection = _messageBus->subscribe<TileHoveredMessage>(
+        [this](const TileHoveredMessage &message) { tileHoveredPreview(message.x, message.y); });
     fillBuildingTextureRects();
 }
 
@@ -95,6 +97,24 @@ void GameView::createPlayers(engine::GameObject *owner) {
         _workerObjects[id] = worker.get();
         owner->addChild(std::move(worker));
     }
+    // two objects, that are exclusively used for showing the possible move preview when hovering
+    // over tiles in the movement phase, so they need to be created here with the rest of the
+    // workers, but will be enabled/positioned as needed in the tileHoveredPreview function
+    auto player1MovePreview = std::make_unique<engine::GameObject>();
+    player1MovePreview->enabled = false;
+    auto player1MovePreviewRenderComponent =
+        player1MovePreview->addComponent<engine::RenderComponent>(player1Texture, 50);
+    _player1MovePreview = player1MovePreview.get();
+    player1MovePreviewRenderComponent->setPivot({.x = 0.5f, .y = 0.666f});
+    owner->addChild(std::move(player1MovePreview));
+
+    auto player2MovePreview = std::make_unique<engine::GameObject>();
+    player2MovePreview->enabled = false;
+    auto player2MovePreviewRenderComponent =
+        player2MovePreview->addComponent<engine::RenderComponent>(player2Texture, 50);
+    _player2MovePreview = player2MovePreview.get();
+    player2MovePreviewRenderComponent->setPivot({.x = 0.5f, .y = 0.666f});
+    owner->addChild(std::move(player2MovePreview));
 
     _gameStateData.workers[0].isSelected = true; // default to player 1 selected at start of game
 }
@@ -246,6 +266,8 @@ void GameView::updateBoard() {
 }
 
 void GameView::updatePlayerPositions() {
+    _player1MovePreview->enabled = false;
+    _player2MovePreview->enabled = false;
     for (const auto &[id, position, selected, placed, playerNumber] : _gameStateData.workers) {
         if (_workerObjects[id] == nullptr) {
             continue; // skip if worker is not yet placed on the board
@@ -320,4 +342,62 @@ void GameView::AnimatedBuildingPlacement(int x, int y, BuildingLevel level) {
     animationComponent->setFrameInfo(frameInfo);
     animationComponent->play();
 }
+
+void GameView::tileHoveredPreview(int x, int y) {
+    auto building = _buildings[{x, y}];
+    if (building == nullptr) {
+        return;
+    }
+    auto const &tileData = _gameStateData.tileData[{x, y}];
+    auto highlightType = tileData.highlight;
+    auto buildingLevel = (int)tileData.buildingLevel;
+    auto renderComponent = building->getComponent<engine::RenderComponent>();
+    if (renderComponent == nullptr) {
+        return;
+    }
+    auto buildingHeight = (int)(_textureTileSize * 1.25f);
+    auto getBuildingPreviewTexstureRect = [&](int row, int column) {
+        return engine::Rect{.left = column * _textureTileSize,
+                            .top = row * buildingHeight,
+                            .width = _textureTileSize,
+                            .height = buildingHeight};
+    };
+    auto getPlayerPreviewTextureRect = [&](int row, int column) {
+        return engine::Rect{.left = column * _textureTileSize,
+                            .top = _playerSpriteHeight * row,
+                            .width = _textureTileSize,
+                            .height = _playerSpriteHeight};
+    };
+
+    switch (_gameStateData.turn) {
+    case Turn::Player1Build:
+    case Turn::Player2Build:
+        updateBoard(); // reset any previous highlights or previews
+        if (highlightType == HighlightType::CanBuild) {
+            renderComponent->setTextureRect(
+                getBuildingPreviewTexstureRect(buildingLevel, 0)); // preview the level 1 building
+        }
+        break;
+    case Turn::Player1Movement:
+    case Turn::Player2Movement:
+        updatePlayerPositions(); // reset any previous highlights or previews
+        if (highlightType == HighlightType::CanMove) {
+            if (_gameStateData.turn == Turn::Player1Movement) {
+                renderComponent = _player1MovePreview->getComponent<engine::RenderComponent>();
+                _player1MovePreview->localTransform.position = building->localTransform.position;
+                _player1MovePreview->enabled = true;
+            } else {
+                renderComponent = _player2MovePreview->getComponent<engine::RenderComponent>();
+                _player2MovePreview->localTransform.position = building->localTransform.position;
+                _player2MovePreview->enabled = true;
+            }
+            renderComponent->setTextureRect(getPlayerPreviewTextureRect(
+                4 + buildingLevel, 0)); // preview the highlighted tile for movement
+        }
+        break;
+    default:
+        break;
+    }
+}
+
 } // namespace game
