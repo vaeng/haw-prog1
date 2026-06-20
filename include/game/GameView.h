@@ -3,6 +3,8 @@
 #include "engine/Component.h"
 #include "engine/GameObject.h"
 #include "engine/MessageBus.h"
+#include "engine/Sprite.h"
+#include "game/GameState.h"
 
 #include <map>
 
@@ -24,6 +26,7 @@ class GameView {
     engine::Connection _stateChangedConnection;
 
     int _textureTileSize{32}; /// size of the board tiles in pixels, hardcoded for now
+    int _playerSpriteHeight{48}; // height of player sprites in pixels, hardcoded for now
     engine::GameObject *_activePlayerLabel{nullptr};
     engine::GameObject *_gameStateLabel{nullptr};
     engine::GameObject *_restartLabel{nullptr};
@@ -31,9 +34,15 @@ class GameView {
     std::map<std::pair<int, int>, engine::GameObject *>
         _tileObjects; // map of tile positions to their GameObjects for access when updating
                       // highlights and building levels
+    std::map<std::pair<int, int>, engine::GameObject *>
+        _buildings; // map of building positions to their GameObjects for access when displaying
+                    // building
     std::map<int, engine::GameObject *>
         _workerObjects; // list of worker GameObjects, indexed by worker id for access when updating
                         // worker positions
+    std::map<BuildingLevel, engine::Rect>
+        _buildingTextureRects; // map of building levels to their texture rects in the spritesheet
+
     void updateLabels();
     void updateBoard();
     void updatePlayerPositions();
@@ -41,6 +50,7 @@ class GameView {
     void setupLabels(engine::GameObject *owner);
     void createPlayers(engine::GameObject *owner);
     void createBoard(engine::GameObject *owner);
+    void fillBuildingTextureRects();
 };
 
 } // namespace game

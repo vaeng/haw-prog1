@@ -16,17 +16,31 @@ void GameView::setup(engine::GameObject *owner, engine::MessageBus *bus) {
             updateBoard();
             updatePlayerPositions();
         });
+    fillBuildingTextureRects();
 }
 
 void GameView::createBoard(engine::GameObject *owner) {
+
+    // the background texture is placed above the tiles, and has a cutout, that is off center, so we
+    // need to offset the positions to match the centered tiles
+    float offset = _textureTileSize * 0.75f;
+    auto backgroundTexture = std::make_shared<engine::Texture>("assets/textures/Board.png");
+    auto background = std::make_unique<engine::GameObject>();
+    background->localTransform.position = {0, -offset};
+    auto backgroundRenderComponent =
+        background->addComponent<engine::RenderComponent>(backgroundTexture, -10);
+    owner->addChild(std::move(background));
+
     float spacing = _boardProperties.screenTileSize;
-    auto tiles = std::make_shared<engine::Texture>("assets/textures/tiles.png");
+    auto tiles = std::make_shared<engine::Texture>("assets/textures/Tile.png");
+    auto buildingTiles = std::make_shared<engine::Texture>("assets/textures/Tower-Spritesheet.png");
 
     auto tilesPerSide = _boardProperties.numTiles /
                         2; // number of tiles from center to edge, e.g. 2 for a 5x5 board
 
     for (int i = -tilesPerSide; i <= tilesPerSide; ++i) {
         for (int j = -tilesPerSide; j <= tilesPerSide; ++j) {
+            // ground tile
             auto tile = std::make_unique<engine::GameObject>();
             _tileObjects[{i, j}] = tile.get();
             tile->localTransform.position = {.x = i * spacing, .y = j * spacing};
@@ -34,28 +48,44 @@ void GameView::createBoard(engine::GameObject *owner) {
             renderComponent->setTextureRect(
                 {.left = 0, .top = 0, .width = _textureTileSize, .height = _textureTileSize});
             owner->addChild(std::move(tile));
+
+            // building tile
+            auto building = std::make_unique<engine::GameObject>();
+            _buildings[{i, j}] = building.get();
+            building->localTransform.position = {.x = i * spacing, .y = j * spacing};
+            auto buildingRC = building->addComponent<engine::RenderComponent>(buildingTiles, 10);
+            buildingRC->setTextureRect(_buildingTextureRects[BuildingLevel::None]);
+            buildingRC->setPivot(
+                {.x = 0.5f, .y = 0.6f}); // adjust for building height and center on tile
+
+            owner->addChild(std::move(building));
         }
     }
 };
 
 void GameView::createPlayers(engine::GameObject *owner) {
-    auto playerTexture = std::make_shared<engine::Texture>("assets/textures/rogues.png");
+    auto player1Texture = std::make_shared<engine::Texture>(
+        "assets/textures/Player-1-Spritesheet-Without-Towers.png");
+    auto player2Texture = std::make_shared<engine::Texture>(
+        "assets/textures/Player-2-Spritesheet-Without-Towers.png");
 
     for (const auto &[id, position, selected, placed, playerNumber] : _gameStateData.workers) {
         auto worker = std::make_unique<engine::GameObject>();
         worker->enabled = false; // disable worker until they are placed on the board
-        auto workerRenderComponent =
-            worker->addComponent<engine::RenderComponent>(playerTexture, 10);
         if (playerNumber == 1) {
-            workerRenderComponent->setTextureRect({.left = 0,
-                                                   .top = _textureTileSize * 2,
-                                                   .width = _textureTileSize,
-                                                   .height = _textureTileSize});
+            auto workerRenderComponent =
+                worker->addComponent<engine::RenderComponent>(player1Texture, 30);
+            workerRenderComponent->setTextureRect(
+                {.left = 0, .top = 0, .width = _textureTileSize, .height = _playerSpriteHeight});
+            workerRenderComponent->setPivot({.x = 0.5f, .y = 0.666f});
         } else {
+            auto workerRenderComponent =
+                worker->addComponent<engine::RenderComponent>(player2Texture, 30);
             workerRenderComponent->setTextureRect({.left = _textureTileSize,
-                                                   .top = _textureTileSize * 2,
+                                                   .top = 0,
                                                    .width = _textureTileSize,
-                                                   .height = _textureTileSize});
+                                                   .height = _playerSpriteHeight});
+            workerRenderComponent->setPivot({.x = 0.5f, .y = 0.666f});
         }
         _workerObjects[id] = worker.get();
         owner->addChild(std::move(worker));
@@ -151,6 +181,22 @@ void GameView::updateLabels() {
     }
 }
 
+void GameView::fillBuildingTextureRects() {
+    auto buildingHeight = (int)(_textureTileSize * 1.25f);
+    auto getBuildingTextureRect = [&](int row, int column) {
+        return engine::Rect{.left = column * _textureTileSize,
+                            .top = row * buildingHeight,
+                            .width = _textureTileSize,
+                            .height = buildingHeight};
+    };
+    _buildingTextureRects[BuildingLevel::None] =
+        getBuildingTextureRect(0, 1); // use the an empty tile in the spritesheet for the None level
+    _buildingTextureRects[BuildingLevel::Level1] = getBuildingTextureRect(4, 4);
+    _buildingTextureRects[BuildingLevel::Level2] = getBuildingTextureRect(5, 3);
+    _buildingTextureRects[BuildingLevel::Level3] = getBuildingTextureRect(6, 3);
+    _buildingTextureRects[BuildingLevel::Dome] = getBuildingTextureRect(7, 7);
+}
+
 void GameView::highlightPossibleActions() {
     for (auto &[position, data] : _gameStateData.tileData) {
         switch (data.highlight) {
@@ -179,23 +225,13 @@ void GameView::updateBoard() {
     // Reset tile data and visuals
     for (auto &[tilePos, data] : _gameStateData.tileData) {
         auto currentLevel = data.buildingLevel;
-        auto tile = _tileObjects[tilePos];
-        if (tile == nullptr) {
+        auto building = _buildings[tilePos];
+        if (building == nullptr) {
             continue;
         }
-        auto rc = tile->getComponent<engine::RenderComponent>();
+        auto rc = building->getComponent<engine::RenderComponent>();
         if (rc != nullptr) {
-            auto previousRect = rc->getTextureRect();
-            if (currentLevel == BuildingLevel::None) {
-                previousRect = {
-                    .left = 0, .top = 0, .width = _textureTileSize, .height = _textureTileSize};
-            } else {
-                previousRect = {.left = _textureTileSize * ((int)currentLevel - 1),
-                                .top = 11 * _textureTileSize,
-                                .width = _textureTileSize,
-                                .height = _textureTileSize};
-            }
-            rc->setTextureRect(previousRect);
+            rc->setTextureRect(_buildingTextureRects[currentLevel]);
         }
     }
 }
@@ -215,6 +251,16 @@ void GameView::updatePlayerPositions() {
         _workerObjects[id]->enabled = true; // enable worker once it is placed on the board
         _workerObjects[id]->localTransform.position = {tile->localTransform.position.x,
                                                        tile->localTransform.position.y};
+        // set sprite based on building level
+        auto workerRenderComponent = _workerObjects[id]->getComponent<engine::RenderComponent>();
+        if (workerRenderComponent == nullptr) {
+            continue;
+        }
+        auto buildingLevel = _gameStateData.tileData[position].buildingLevel;
+        workerRenderComponent->setTextureRect({.left = 0,
+                                               .top = _playerSpriteHeight * (int)buildingLevel,
+                                               .width = _textureTileSize,
+                                               .height = _playerSpriteHeight});
     }
 }
 } // namespace game
