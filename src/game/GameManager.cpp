@@ -52,10 +52,13 @@ void GameManager::handleEvent(const std::optional<sf::Event> &event, float delta
 }
 
 void GameManager::computeBoardBounds() {
+    _boardProperties.verticalBoardOffset = _textureTileSize * 1.5f;
     _boardProperties.screenTileSize = _textureTileSize * owner->localTransform.scale.x;
     auto [windowWidth, windowHeight] = owner->getCore()->getContext().window->getSize();
     // object is centered at (windowWidth / 2, windowHeight / 2), so the top left corner is at
     auto boardPosition = owner->getWorldTransform().position;
+    // the board is not centered but offset a bit to the owner
+    boardPosition.y += _boardProperties.verticalBoardOffset;
     auto halfBoardSize = (_boardProperties.numTiles / 2.0f) * _boardProperties.screenTileSize;
     _boardProperties.boardTopLeft = {boardPosition.x - halfBoardSize,
                                      boardPosition.y - halfBoardSize};

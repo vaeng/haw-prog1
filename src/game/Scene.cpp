@@ -46,9 +46,9 @@ auto createScene() -> engine::GameObject {
 
     auto board = std::make_unique<engine::GameObject>();
     auto gameManager = board->addComponent<game::GameManager>(2, 5);
-    // center the board in the window
-    board->localTransform.position = {.x = 400, .y = 300};
-    board->localTransform.scale = {.x = 1.5f, .y = 1.5f};
+
+    board->localTransform.position = {.x = 224 * 1.5f, .y = 256 * 1.5f};
+    board->localTransform.scale = {.x = 3.0f, .y = 3.0f};
 
     sceneRoot.addChild(std::move(board));
     return sceneRoot;

@@ -14,6 +14,8 @@ struct BoardProperties {
     int screenTileSize{}; /// size of each tile in actual pixels on the screen (including scale of
                           /// parent), assumes square tiles
     int workersPerPlayer{};
+    int verticalBoardOffset{}; // vertical offset in pixels to account for the board texture not
+                               // being centered on the
     engine::Vector2
         boardTopLeft{}; /// position of the top left corner of the board in window coordinates
     engine::Vector2 boardBottomRight{}; /// position of the bottom right corner of the board in

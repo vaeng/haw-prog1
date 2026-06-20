@@ -23,10 +23,8 @@ void GameView::createBoard(engine::GameObject *owner) {
 
     // the background texture is placed above the tiles, and has a cutout, that is off center, so we
     // need to offset the positions to match the centered tiles
-    float offset = _textureTileSize * 0.75f;
     auto backgroundTexture = std::make_shared<engine::Texture>("assets/textures/Board.png");
     auto background = std::make_unique<engine::GameObject>();
-    background->localTransform.position = {0, -offset};
     auto backgroundRenderComponent =
         background->addComponent<engine::RenderComponent>(backgroundTexture, -10);
     owner->addChild(std::move(background));
@@ -43,7 +41,8 @@ void GameView::createBoard(engine::GameObject *owner) {
             // ground tile
             auto tile = std::make_unique<engine::GameObject>();
             _tileObjects[{i, j}] = tile.get();
-            tile->localTransform.position = {.x = i * spacing, .y = j * spacing};
+            tile->localTransform.position = {
+                .x = i * spacing, .y = j * spacing + _boardProperties.verticalBoardOffset};
             auto renderComponent = tile->addComponent<engine::RenderComponent>(tiles);
             renderComponent->setTextureRect(
                 {.left = 0, .top = 0, .width = _textureTileSize, .height = _textureTileSize});
@@ -52,7 +51,8 @@ void GameView::createBoard(engine::GameObject *owner) {
             // building tile
             auto building = std::make_unique<engine::GameObject>();
             _buildings[{i, j}] = building.get();
-            building->localTransform.position = {.x = i * spacing, .y = j * spacing};
+            building->localTransform.position = {
+                .x = i * spacing, .y = j * spacing + _boardProperties.verticalBoardOffset};
             auto buildingRC = building->addComponent<engine::RenderComponent>(buildingTiles, 10);
             buildingRC->setTextureRect(_buildingTextureRects[BuildingLevel::None]);
             buildingRC->setPivot(
@@ -95,7 +95,7 @@ void GameView::createPlayers(engine::GameObject *owner) {
 }
 
 void GameView::setupLabels(engine::GameObject *owner) {
-    auto textTexture = std::make_shared<engine::Texture>("assets/textures/text.png");
+    auto textTexture = std::make_shared<engine::Texture>("assets/textures/Labels-sheet.png");
     auto activePlayerLabel = std::make_unique<engine::GameObject>();
     activePlayerLabel->localTransform.position = {0, (float)(_boardProperties.numTiles / 2 + 1) *
                                                          _boardProperties.screenTileSize};
@@ -133,13 +133,20 @@ void GameView::setupLabels(engine::GameObject *owner) {
 }
 
 void GameView::updateLabels() {
-    auto player1turnRect = engine::Rect{.left = 0, .top = 0, .width = 150, .height = 20};
-    auto player2turnRect = engine::Rect{.left = 0, .top = 24 * 1, .width = 150, .height = 20};
-    auto selectRect = engine::Rect{.left = 0, .top = 24 * 2, .width = 300, .height = 20};
-    auto placeRect = engine::Rect{.left = 0, .top = 24 * 3, .width = 300, .height = 20};
-    auto moveRect = engine::Rect{.left = 0, .top = 24 * 4, .width = 300, .height = 20};
-    auto buildRect = engine::Rect{.left = 0, .top = 24 * 5, .width = 300, .height = 20};
-    auto winnerRect = engine::Rect{.left = 0, .top = 24 * 6, .width = 300, .height = 20};
+    auto labelHeight = 32;
+    auto player1turnRect = engine::Rect{.left = 0, .top = 0, .width = 29, .height = labelHeight};
+    auto player2turnRect =
+        engine::Rect{.left = 0, .top = labelHeight * 1, .width = 93, .height = labelHeight};
+    auto placeRect =
+        engine::Rect{.left = 0, .top = labelHeight * 2, .width = 132, .height = labelHeight};
+    auto moveRect =
+        engine::Rect{.left = 0, .top = labelHeight * 3, .width = 73, .height = labelHeight};
+    auto buildRect =
+        engine::Rect{.left = 0, .top = labelHeight * 4, .width = 73, .height = labelHeight};
+    auto selectRect =
+        engine::Rect{.left = 0, .top = labelHeight * 5, .width = 146, .height = labelHeight};
+    auto winnerRect =
+        engine::Rect{.left = 0, .top = labelHeight * 5, .width = 300, .height = labelHeight};
     switch (_gameStateData.turn) {
     case Turn::Player1Placement:
     case Turn::Player1Movement:
