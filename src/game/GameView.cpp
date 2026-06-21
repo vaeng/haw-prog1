@@ -25,6 +25,11 @@ void GameView::setup(engine::GameObject *owner, engine::MessageBus *bus) {
         [this](const TileHoveredMessage &message) { tileHoveredPreview(message.x, message.y); });
     _workerPlacedConnection = _messageBus->subscribe<WorkerPlacedMessage>(
         [this](const WorkerPlacedMessage &message) { animatedWorkerPlacement(message.workerId); });
+    _workerMovedConnection =
+        _messageBus->subscribe<WorkerMovedMessage>([this](const WorkerMovedMessage &message) {
+            workerMovementAnimation(message.workerId, message.originX, message.originY,
+                                    message.destinationX, message.destinationY);
+        });
     // trigger initial setup of labels and highlights based on initial game state
     fillBuildingTextureRects();
 }
@@ -285,8 +290,7 @@ void GameView::updatePlayerPositions() {
             continue;
         }
         _workerObjects[id]->enabled = true; // enable worker once it is placed on the board
-        _workerObjects[id]->localTransform.position = {tile->localTransform.position.x,
-                                                       tile->localTransform.position.y};
+
         // set sprite based on building level
         auto workerRenderComponent = _workerObjects[id]->getComponent<engine::RenderComponent>();
         if (workerRenderComponent == nullptr) {
@@ -296,6 +300,8 @@ void GameView::updatePlayerPositions() {
         if (ac != nullptr && ac->isPlaying()) {
             continue; // skip updating the texture rect if the worker animation is still playing
         }
+        _workerObjects[id]->localTransform.position = {tile->localTransform.position.x,
+                                                       tile->localTransform.position.y};
         auto buildingLevel = _gameStateData.tileData[position].buildingLevel;
         workerRenderComponent->setTextureRect({.left = 0,
                                                .top = _playerSpriteHeight * (int)buildingLevel,
@@ -361,19 +367,80 @@ void GameView::animatedWorkerPlacement(int workerId) {
     if (animationComponent == nullptr) {
         return;
     }
-
+    auto buildingLevel =
+        (int)_gameStateData.tileData[_gameStateData.workers[workerId].position].buildingLevel;
     animationComponent->setFrameInfo({
         .framesPerSecond = 10,
         .totalFrames = 7,
         .width = _textureTileSize,
         .height = _playerSpriteHeight,
-        .verticalOffset = 12 * _playerSpriteHeight,
+        .verticalOffset = (12 + buildingLevel) * _playerSpriteHeight,
         .horizontalOffset = 0 * _textureTileSize,
         .horizontalFrameCount = 7,
         .verticalFrameCount = 1,
         .horizontalPadding = 0,
         .verticalPadding = 0,
     });
+    // move to the worker's position so the animation plays in the correct location, as the normal
+    // update skips animated workers
+    auto tile = _tileObjects[{_gameStateData.workers[workerId].position.first,
+                              _gameStateData.workers[workerId].position.second}];
+    if (tile != nullptr) {
+        worker->localTransform.position = {tile->localTransform.position.x,
+                                           tile->localTransform.position.y};
+    }
+    animationComponent->play();
+}
+
+void GameView::workerMovementAnimation(int workerId, int originX, int originY, int destinationX,
+                                       int destinationY) {
+    auto worker = _workerObjects[workerId];
+    if (worker == nullptr) {
+        return;
+    }
+    auto animationComponent = worker->getComponent<engine::AnimationComponent>();
+    if (animationComponent == nullptr) {
+        return;
+    }
+    auto newBuildingLevel =
+        (int)_gameStateData.tileData[{destinationX, destinationY}].buildingLevel;
+    auto appearFrameInfo = engine::FrameInfo{
+        .framesPerSecond = 10,
+        .totalFrames = 7,
+        .width = _textureTileSize,
+        .height = _playerSpriteHeight,
+        .verticalOffset = (12 + newBuildingLevel) * _playerSpriteHeight,
+        .horizontalOffset = 0 * _textureTileSize,
+        .horizontalFrameCount = 7,
+        .verticalFrameCount = 1,
+        .horizontalPadding = 0,
+        .verticalPadding = 0,
+    };
+
+    // move to the worker's position so the animation plays in the correct location, as the normal
+    // update skips animated workers
+    auto tile = _tileObjects[{destinationX, destinationY}];
+    if (tile != nullptr) {
+        worker->localTransform.position = {tile->localTransform.position.x,
+                                           tile->localTransform.position.y};
+    }
+    auto oldBuildingLevel = (int)_gameStateData.tileData[{originX, originY}].buildingLevel;
+    auto vectorToMove = _tileObjects[{originX, originY}]->localTransform.position -
+                        _tileObjects[{destinationX, destinationY}]->localTransform.position;
+    auto disappearFrameInfo =
+        engine::FrameInfo{.framesPerSecond = 10,
+                          .totalFrames = 7,
+                          .width = _textureTileSize,
+                          .height = _playerSpriteHeight,
+                          .verticalOffset = (8 + oldBuildingLevel) * _playerSpriteHeight,
+                          .horizontalOffset = 0 * _textureTileSize,
+                          .horizontalFrameCount = 7,
+                          .verticalFrameCount = 1,
+                          .horizontalPadding = 0,
+                          .verticalPadding = 0,
+                          .positionDelta = vectorToMove};
+    animationComponent->setFrameInfo(disappearFrameInfo);
+    animationComponent->queueAnimation(appearFrameInfo);
     animationComponent->play();
 }
 

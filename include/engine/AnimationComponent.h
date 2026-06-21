@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <queue>
 
 #include "engine/Component.h"
 #include "engine/GameObject.h"
@@ -26,6 +27,8 @@ struct FrameInfo {
     int verticalFrameCount;   /// Number of rows in the animation sheet
     int horizontalPadding;    /// Padding between frames horizontally
     int verticalPadding;      /// Padding between frames vertically
+    Vector2 positionDelta{};  /// Optional offset to apply when rendering the frame, in pixels. Will
+                              /// be revised after animation is done
 };
 
 class AnimationComponent : public Component {
@@ -52,9 +55,16 @@ class AnimationComponent : public Component {
         if (_currentFrame >= _frameInfo.totalFrames) {
             if (_loop) {
                 _currentFrame = 0;
+            } else if (!_animationQueue.empty()) {
+                resetPositionDelta();
+                _frameInfo = _animationQueue.front();
+                _animationQueue.pop();
+                applyOffset();
+                _currentFrame = 0;
             } else {
                 _currentFrame = _frameInfo.totalFrames - 1; // stay on the last frame
-                _isPlaying = false;                         // stop the animation
+                resetPositionDelta();                       // stop the animation
+                _isPlaying = false;
             }
         }
         int left = (_currentFrame % _frameInfo.horizontalFrameCount) *
@@ -69,6 +79,7 @@ class AnimationComponent : public Component {
 
     [[nodiscard]] auto getFrameInfo() const -> FrameInfo { return _frameInfo; }
     auto setFrameInfo(const FrameInfo &info) {
+        resetPositionDelta();
         stop();
         _frameInfo = info;
     }
@@ -80,22 +91,43 @@ class AnimationComponent : public Component {
         return cloned;
     }
     [[nodiscard]] bool isPlaying() const { return _isPlaying; }
-    void play() { _isPlaying = true; }
+    void play() {
+        _isPlaying = true;
+        applyOffset();
+    }
+    void applyOffset() {
+        _appliedPositionDelta = _frameInfo.positionDelta;
+        owner->localTransform.position = {
+            owner->localTransform.position.x + _appliedPositionDelta.x,
+            owner->localTransform.position.y + _appliedPositionDelta.y};
+    }
     void pause() { _isPlaying = false; }
     void stop() {
         _isPlaying = false;
         _currentFrame = 0;
         _timeSinceLastFrame = 0;
+        resetPositionDelta();
     }
     [[nodiscard]] bool isLooping() const { return _loop; }
     void setLooping(bool loop) { _loop = loop; }
+    void queueAnimation(const FrameInfo &info) { _animationQueue.push(info); }
 
   private:
     RenderComponent *_render{nullptr};
     FrameInfo _frameInfo{};
+    std::queue<FrameInfo> _animationQueue{};
     int _currentFrame{};
     float _timeSinceLastFrame{};
     bool _isPlaying{false};
     bool _loop{false};
+    void resetPositionDelta() {
+        owner->localTransform.position = {
+            owner->localTransform.position.x - _appliedPositionDelta.x,
+            owner->localTransform.position.y - _appliedPositionDelta.y};
+        _appliedPositionDelta = {0, 0};
+    }
+    engine::Vector2
+        _appliedPositionDelta{}; // track the position delta that has been applied so we can reset
+                                 // it when the animation finishes or is stopped
 };
 } // namespace engine

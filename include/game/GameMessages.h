@@ -43,10 +43,10 @@ struct BuildingPlacedMessage {
 
 struct WorkerMovedMessage {
     int workerId;
-    int fromX;
-    int fromY;
-    int toX;
-    int toY;
+    int originX;
+    int originY;
+    int destinationX;
+    int destinationY;
 };
 
 struct WorkerPlacedMessage {

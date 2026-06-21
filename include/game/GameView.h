@@ -58,6 +58,8 @@ class GameView {
     void fillBuildingTextureRects();
     void animatedBuildingPlacement(int x, int y, BuildingLevel level);
     void animatedWorkerPlacement(int workerId);
+    void workerMovementAnimation(int workerId, int originX, int originY, int destinationX,
+                                 int destinationY);
     void tileHoveredPreview(int x, int y);
 };
 

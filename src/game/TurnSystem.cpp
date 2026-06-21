@@ -152,6 +152,11 @@ void TurnSystem::selectWorker(int playerNumber, int x, int y) {
 
 void TurnSystem::tryMovePlayer(int x, int y) {
     if (canPlayerMove(x, y)) {
+        if (getSelectedWorker().isPlaced) {
+            _messageBus->publish<WorkerMovedMessage>({getSelectedWorker().id,
+                                                      getSelectedWorker().position.first,
+                                                      getSelectedWorker().position.second, x, y});
+        }
         getSelectedWorker().position = {x, y};
         getSelectedWorker().isPlaced = true;
         if (isGameWon()) {
