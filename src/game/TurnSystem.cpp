@@ -100,6 +100,7 @@ bool TurnSystem::canPlayerMove(int x, int y) {
 }
 
 bool TurnSystem::isGameWon() {
+    // Check if the selected worker is on a level 3 tile
     return _gameStateData
                .tileData[{getSelectedWorker().position.first, getSelectedWorker().position.second}]
                .buildingLevel == BuildingLevel::Level3;
@@ -162,6 +163,10 @@ void TurnSystem::tryMovePlayer(int x, int y) {
         if (isGameWon()) {
             _gameStateData.turn =
                 (getSelectedWorker().playerNumber == 1) ? Turn::Player1Win : Turn::Player2Win;
+            // reset all preview
+            for (auto &[_, data] : _gameStateData.tileData) {
+                data.highlight = HighlightType::None;
+            }
             _messageBus->publish<StateChangedMessage>({}); // trigger view update after state change
         } else {
             progressState();
