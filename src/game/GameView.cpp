@@ -173,16 +173,26 @@ void GameView::updateLabels() {
         engine::Rect{.left = 0, .top = labelHeight * 4, .width = 73, .height = labelHeight};
     auto selectRect =
         engine::Rect{.left = 0, .top = labelHeight * 5, .width = 146, .height = labelHeight};
-    auto winnerRect =
-        engine::Rect{.left = 0, .top = labelHeight * 5, .width = 300, .height = labelHeight};
+    auto winner1Rect =
+        engine::Rect{.left = 0, .top = labelHeight * 6, .width = 154, .height = labelHeight};
+    auto winner2Rect =
+        engine::Rect{.left = 0, .top = labelHeight * 7, .width = 154, .height = labelHeight};
+    auto restartRect =
+        engine::Rect{.left = 0, .top = labelHeight * 8, .width = 177, .height = labelHeight};
+
     switch (_gameStateData.turn) {
     case Turn::Player1Placement:
     case Turn::Player1Movement:
     case Turn::Player1Build:
-    case Turn::Player1Win:
     case Turn::Player1Select:
         _activePlayerLabel->getComponent<engine::RenderComponent>()->setTextureRect(
             player1turnRect);
+        break;
+    case Turn::Player1Win:
+        _activePlayerLabel->getComponent<engine::RenderComponent>()->setTextureRect(winner1Rect);
+        break;
+    case Turn::Player2Win:
+        _activePlayerLabel->getComponent<engine::RenderComponent>()->setTextureRect(winner2Rect);
         break;
     default:
         _activePlayerLabel->getComponent<engine::RenderComponent>()->setTextureRect(
@@ -207,7 +217,7 @@ void GameView::updateLabels() {
     case Turn::Player1Win:
     case Turn::Player2Win:
         _restartLabel->enabled = true;
-        _gameStateLabel->getComponent<engine::RenderComponent>()->setTextureRect(winnerRect);
+        _gameStateLabel->getComponent<engine::RenderComponent>()->setTextureRect(restartRect);
         break;
     case Turn::Player1Select:
     case Turn::Player2Select:
@@ -225,7 +235,7 @@ void GameView::fillBuildingTextureRects() {
                             .height = buildingHeight};
     };
     _buildingTextureRects[BuildingLevel::None] =
-        getBuildingTextureRect(0, 1); // use the an empty tile in the spritesheet for the None level
+        getBuildingTextureRect(0, 2); // use the an empty tile in the spritesheet for the None level
     _buildingTextureRects[BuildingLevel::Level1] = getBuildingTextureRect(4, 4);
     _buildingTextureRects[BuildingLevel::Level2] = getBuildingTextureRect(5, 3);
     _buildingTextureRects[BuildingLevel::Level3] = getBuildingTextureRect(6, 3);
