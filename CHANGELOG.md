@@ -13,6 +13,8 @@
 - Status labels showing current phase and active player
 - Win detection (standing on Level3) with restart (R key)
 - UI labels via texture-atlas spritesheet (`text.png`)
+- Animations for player placement, movement and building setup
+- Previews for move and build
 
 #### Fixed
 
@@ -50,6 +52,7 @@
 - `GameObject::clone()`: deep-copy with detached components
 - `Component::clone()`: virtual clone interface (all components must implement)
 - `MessageBus`: accessible via `Core::getContext()`
+- `AnimationComponent`: loops are now optional, object can be shifted for animation. (Might turn into tweening)
 
 #### Changed
 
