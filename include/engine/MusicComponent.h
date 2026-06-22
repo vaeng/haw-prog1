@@ -16,6 +16,12 @@ class MusicComponent : public Component {
 
     void setMusic(const std::shared_ptr<Music> &music) { _music = music; }
 
+    void setRepeating(bool repeat) {
+        if (_music) {
+            _music->getNative().setLooping(repeat);
+        }
+    }
+
     void play() {
         if (_music) {
             _music->getNative().play();

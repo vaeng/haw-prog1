@@ -167,10 +167,13 @@ void TurnSystem::tryMovePlayer(int x, int y) {
             for (auto &[_, data] : _gameStateData.tileData) {
                 data.highlight = HighlightType::None;
             }
+            _messageBus->publish<WinMessage>({getSelectedWorker().playerNumber});
             _messageBus->publish<StateChangedMessage>({}); // trigger view update after state change
         } else {
             progressState();
         }
+    } else {
+        _messageBus->publish<InvalidClickMessage>({});
     }
 }
 

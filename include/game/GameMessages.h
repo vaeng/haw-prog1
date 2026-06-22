@@ -53,4 +53,9 @@ struct WorkerPlacedMessage {
     int workerId;
 };
 
+struct InvalidClickMessage {};
+struct WinMessage {
+    int playerNumber;
+};
+
 } // namespace game

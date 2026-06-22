@@ -74,6 +74,7 @@ void GameManager::start() {
     _gameView.setup(owner, _messageBus);
     _inputSystem.setup(_messageBus);
     _turnSystem.setup(_messageBus);
+    _audioSystem.setup(owner, _messageBus);
 }
 
 const BoardProperties &GameManager::getBoardProperties() const { return _boardProperties; }

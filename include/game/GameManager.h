@@ -2,10 +2,12 @@
 
 #include "engine/Component.h"
 #include "engine/Vector2.h"
+#include "game/AudioSystem.h"
 #include "game/GameState.h"
 #include "game/GameView.h"
 #include "game/InputSystem.h"
 #include "game/TurnSystem.h"
+
 
 namespace game {
 
@@ -40,6 +42,7 @@ class GameManager : public engine::Component {
     TurnSystem _turnSystem{_gameStateData, _boardProperties};
     GameView _gameView{_gameStateData, _boardProperties};
     InputSystem _inputSystem{_boardProperties};
+    AudioSystem _audioSystem{};
     int _textureTileSize{}; /// size of the board tiles in pixels, hardcoded in start() for now,
                             /// could be made configurable
     engine::MessageBus *_messageBus{nullptr};
