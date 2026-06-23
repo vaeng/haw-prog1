@@ -40,8 +40,10 @@ void GameView::setup(engine::GameObject *owner, engine::MessageBus *bus) {
     owner->addChild(std::move(arrowParent));
     _moveArrowTexture =
         std::make_shared<engine::Texture>("assets/textures/Arrows-Move-Spritesheet.png");
+    _moveArrowTexture->setSmooth(true);
     _buildArrowTexture =
         std::make_shared<engine::Texture>("assets/textures/Arrows-Build-Spritesheet.png");
+    _buildArrowTexture->setSmooth(true);
 
     for (int i = 0; i < 8; ++i) {
         auto arrow = std::make_unique<engine::GameObject>();
@@ -72,6 +74,7 @@ void GameView::createBoard(engine::GameObject *owner) {
     // the background texture is placed above the tiles, and has a cutout, that is off center, so we
     // need to offset the positions to match the centered tiles
     auto backgroundTexture = std::make_shared<engine::Texture>("assets/textures/Board.png");
+    backgroundTexture->setSmooth(true);
     auto background = std::make_unique<engine::GameObject>();
     auto backgroundRenderComponent =
         background->addComponent<engine::RenderComponent>(backgroundTexture, -10);
@@ -79,7 +82,9 @@ void GameView::createBoard(engine::GameObject *owner) {
 
     float spacing = _boardProperties.screenTileSize;
     auto tiles = std::make_shared<engine::Texture>("assets/textures/Tile.png");
+    tiles->setSmooth(true);
     auto buildingTiles = std::make_shared<engine::Texture>("assets/textures/Tower-Spritesheet.png");
+    buildingTiles->setSmooth(true);
 
     auto tilesPerSide = _boardProperties.numTiles /
                         2; // number of tiles from center to edge, e.g. 2 for a 5x5 board
@@ -116,8 +121,10 @@ void GameView::createBoard(engine::GameObject *owner) {
 void GameView::createPlayers(engine::GameObject *owner) {
     auto player1Texture = std::make_shared<engine::Texture>(
         "assets/textures/Player-1-Spritesheet-Without-Towers.png");
+    player1Texture->setSmooth(true);
     auto player2Texture = std::make_shared<engine::Texture>(
         "assets/textures/Player-2-Spritesheet-Without-Towers.png");
+    player2Texture->setSmooth(true);
     auto playerSpriteHeight = (int)(_boardProperties.screenTileSize * 1.5f);
     for (const auto &[id, position, selected, placed, playerNumber] : _gameStateData.workers) {
         auto worker = std::make_unique<engine::GameObject>();
@@ -168,6 +175,7 @@ void GameView::createPlayers(engine::GameObject *owner) {
 
 void GameView::setupLabels(engine::GameObject *owner) {
     auto textTexture = std::make_shared<engine::Texture>("assets/textures/Labels-sheet.png");
+    textTexture->setSmooth(true);
     auto activePlayerLabel = std::make_unique<engine::GameObject>();
     activePlayerLabel->localTransform.position = {0, -(float)(_boardProperties.numTiles / 2 + 1) -
                                                          _boardProperties.screenTileSize * 3.1f};
