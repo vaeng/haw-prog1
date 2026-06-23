@@ -8,10 +8,11 @@
 namespace game {
 
 GameManager::GameManager(int workersPerPlayer, int numTiles)
-    : _textureTileSize(32), _boardProperties({
-                                .numTiles = numTiles,
-                                .workersPerPlayer = workersPerPlayer,
-                            }),
+    : _boardProperties({
+          .numTiles = numTiles,
+          .screenTileSize = 32,
+          .workersPerPlayer = workersPerPlayer,
+      }),
       _turnSystem(_gameStateData, _boardProperties), _gameView(_gameStateData, _boardProperties),
       _inputSystem(_boardProperties) {
     if (numTiles % 2 == 0) {
@@ -52,14 +53,16 @@ void GameManager::handleEvent(const std::optional<sf::Event> &event, float delta
 }
 
 void GameManager::computeBoardBounds() {
-    _boardProperties.verticalBoardOffset = _textureTileSize * 1.5f;
-    _boardProperties.screenTileSize = _textureTileSize * owner->localTransform.scale.x;
+    _boardProperties.verticalBoardOffset = _boardProperties.screenTileSize * 0.5f;
     auto [windowWidth, windowHeight] = owner->getCore()->getContext().window->getSize();
     // object is centered at (windowWidth / 2, windowHeight / 2), so the top left corner is at
     auto boardPosition = owner->getWorldTransform().position;
     // the board is not centered but offset a bit to the owner
-    boardPosition.y += _boardProperties.verticalBoardOffset;
-    auto halfBoardSize = (_boardProperties.numTiles / 2.0f) * _boardProperties.screenTileSize;
+    float worldScale = owner->getWorldTransform().scale.x;
+    boardPosition.y += _boardProperties.verticalBoardOffset * worldScale;
+    _boardProperties.worldScale = worldScale;
+    int boardPixelSize = _boardProperties.numTiles * _boardProperties.screenTileSize * worldScale;
+    auto halfBoardSize = boardPixelSize / 2.0f;
     _boardProperties.boardTopLeft = {boardPosition.x - halfBoardSize,
                                      boardPosition.y - halfBoardSize};
     _boardProperties.boardBottomRight = {boardPosition.x + halfBoardSize,

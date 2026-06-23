@@ -19,7 +19,7 @@ class InputSystem {
     engine::Connection _mouseClickedConnection;
     engine::Connection _mouseMovedConnection;
 
-    std::tuple<bool, int, int> getTileUnderMouse(int mouseX, int mouseY);
+    [[nodiscard]] std::tuple<bool, int, int> getTileUnderMouse(int mouseX, int mouseY);
     void onMouseMoveEvent(const game::MouseMovedMessage &message);
     void onClickEvent(const game::MouseClickedMessage &message);
 };

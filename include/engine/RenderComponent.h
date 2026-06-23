@@ -43,5 +43,6 @@ class RenderComponent : public Component {
     Rect _textureRect{};
     Vector2 _pivot{};
     bool _repeated{false};
+    Vector2 _renderOffset{};
 };
 } // namespace engine

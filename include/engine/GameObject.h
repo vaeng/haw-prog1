@@ -28,10 +28,10 @@ class GameObject {
     ///
     /// This is the local transform combined with the transforms of all its ancestors. This is what
     /// should be used for rendering and physics calculations,
-    [[nodiscard]] auto getWorldTransform() -> Transform;
+    [[nodiscard]] auto getWorldTransform() const -> Transform;
 
     /// The parent GameObject, or null if this is the root or detached
-    auto getParent() -> GameObject *;
+    [[nodiscard]] auto getParent() const -> GameObject *;
 
     /// Checks if this GameObject is the root of the scene (i.e. has no parent)
     [[nodiscard]] auto isRoot() const -> bool;
@@ -51,7 +51,7 @@ class GameObject {
     /// this vector will modify the children of this GameObject, but be careful not to break the
     /// parent-child relationship (e.g. by moving a child to another GameObject without updating its
     /// parent pointer).
-    auto getChildren() -> std::vector<std::unique_ptr<GameObject>> &;
+    [[nodiscard]] auto getChildren() -> std::vector<std::unique_ptr<GameObject>> &;
 
     /// Adds a component of type T to this GameObject
     ///
@@ -76,7 +76,7 @@ class GameObject {
     /// If there are multiple components of type T, returns the first one found. This is not
     /// recommended and may be changed in the future to return a vector of components of type T
     /// instead
-    template <typename T> auto getComponent() -> T * {
+    template <typename T> [[nodiscard]] auto getComponent() -> T * {
         for (auto &component : _components) {
             if (auto casted = dynamic_cast<T *>(component.get())) {
                 return casted;
@@ -124,7 +124,7 @@ class GameObject {
     ///
     /// This is used to access the window and other global resources. Throws an exception if this
     /// GameObject is not attached to a Core (i.e. is not part of a scene).
-    auto getCore() -> Core * {
+    [[nodiscard]] auto getCore() const -> Core * {
         if (_core != nullptr) {
             return _core;
         }
@@ -146,6 +146,8 @@ class GameObject {
     auto clone() -> std::unique_ptr<GameObject> {
         auto cloned = std::make_unique<GameObject>();
         cloned->enabled = enabled;
+        cloned->_core = _core;
+        cloned->_parent = nullptr; // Cloned GameObject is detached
         cloned->localTransform = localTransform;
         for (const auto &component : _components) {
             // This requires that all components have a copy constructor, which is a reasonable

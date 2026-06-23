@@ -39,12 +39,10 @@ Rect RenderComponent::getTextureRect() const { return _textureRect; }
 void RenderComponent::setTint(Color tintColor) { _sprite.setTint(tintColor); }
 
 std::unique_ptr<Component> RenderComponent::clone() const {
-    {
-        auto cloned = std::make_unique<RenderComponent>(_texture, layer, zIndex, _pivot);
-        cloned->_sprite = _sprite;
-        cloned->_textureRect = _textureRect;
-        return cloned;
-    }
+    auto cloned = std::make_unique<RenderComponent>(_texture, layer, zIndex, _pivot);
+    cloned->_sprite = _sprite;
+    cloned->_textureRect = _textureRect;
+    return cloned;
 }
 
 } // namespace engine

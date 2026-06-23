@@ -22,7 +22,7 @@ class TurnSystem {
     /// - Must be adjacent to the player's current position (including diagonals)
     /// - Cannot build on a tile with a dome
     /// - Cannot build on a tile occupied by either player
-    bool canPlayerBuild(int x, int y);
+    [[nodiscard]] bool canPlayerBuild(int x, int y);
 
     /// Check if the player can move to the tile at (x, y)
     ///
@@ -32,10 +32,10 @@ class TurnSystem {
     /// - Cannot move onto a tile occupied by the other player
     /// - Cannot move onto a tile with a building level difference of +2 or more, down is
     /// allowed
-    bool canPlayerMove(int x, int y);
+    [[nodiscard]] bool canPlayerMove(int x, int y);
 
-    bool isTileAdjacentToPlayer(int x, int y);
-    bool isGameWon();
+    [[nodiscard]] bool isTileAdjacentToPlayer(int x, int y);
+    [[nodiscard]] bool isGameWon();
     void progressState();
     void resetGame();
 
@@ -48,7 +48,7 @@ class TurnSystem {
 
     void onTileClicked(TileClickedMessage message);
 
-    WorkerData &getSelectedWorker();
+    [[nodiscard]] WorkerData &getSelectedWorker();
     GameStateData &_gameStateData;
     const BoardProperties &_boardProperties;
     engine::MessageBus *_messageBus{nullptr};

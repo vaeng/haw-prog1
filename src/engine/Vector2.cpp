@@ -8,6 +8,12 @@ auto operator+(Vector2 lhs, const Vector2 &rhs) -> Vector2 {
     return lhs;
 }
 
+auto operator*(Vector2 lhs, const Vector2 &rhs) -> Vector2 {
+    lhs.x *= rhs.x;
+    lhs.y *= rhs.y;
+    return lhs;
+}
+
 auto operator-(Vector2 lhs, const Vector2 &rhs) -> Vector2 {
     lhs.x -= rhs.x;
     lhs.y -= rhs.y;

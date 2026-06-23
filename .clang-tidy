@@ -4,6 +4,7 @@ Checks: >
   performance-*,
   cppcoreguidelines-pro-type-member-init,
   misc-const-correctness
+  modernize-use-nodiscard
 
 HeaderFilterRegex: 'include/(engine|game)/'
 

@@ -8,12 +8,14 @@ std::tuple<bool, int, int> InputSystem::getTileUnderMouse(int mouseX, int mouseY
         mouseX <= _boardProperties.boardBottomRight.x &&
         mouseY >= _boardProperties.boardTopLeft.y &&
         mouseY <= _boardProperties.boardBottomRight.y) {
-        int tileX = static_cast<int>((mouseX - _boardProperties.boardTopLeft.x) /
-                                     _boardProperties.screenTileSize) -
-                    _boardProperties.numTiles / 2;
-        int tileY = static_cast<int>((mouseY - _boardProperties.boardTopLeft.y) /
-                                     _boardProperties.screenTileSize) -
-                    _boardProperties.numTiles / 2;
+        int tileX =
+            static_cast<int>((mouseX - _boardProperties.boardTopLeft.x) /
+                             (_boardProperties.screenTileSize * _boardProperties.worldScale)) -
+            _boardProperties.numTiles / 2;
+        int tileY =
+            static_cast<int>((mouseY - _boardProperties.boardTopLeft.y) /
+                             (_boardProperties.screenTileSize * _boardProperties.worldScale)) -
+            _boardProperties.numTiles / 2;
         return {true, tileX, tileY};
     }
     return {false, 0, 0};

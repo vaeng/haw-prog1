@@ -51,9 +51,13 @@ class Sprite {
         return {.x = pos.x, .y = pos.y};
     }
 
-    auto setRotation(float angle) -> void {
+    auto setRotation(float angle, bool inDegrees = false) -> void {
         if (_sprite) {
-            _sprite->setRotation(sf::degrees(angle));
+            if (inDegrees) {
+                _sprite->setRotation(sf::degrees(angle));
+            } else {
+                _sprite->setRotation(sf::radians(angle));
+            }
         }
     }
 

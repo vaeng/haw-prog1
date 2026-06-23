@@ -36,8 +36,6 @@ class GameView {
     engine::Connection _workerPlacedConnection;
     engine::Connection _tileHoveredConnection;
 
-    int _textureTileSize{32}; /// size of the board tiles in pixels, hardcoded for now
-    int _playerSpriteHeight{48}; // height of player sprites in pixels, hardcoded for now
     engine::GameObject *_activePlayerLabel{nullptr};
     engine::GameObject *_gameStateLabel{nullptr};
     engine::GameObject *_restartLabel{nullptr};

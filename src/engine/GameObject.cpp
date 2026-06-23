@@ -1,9 +1,10 @@
 #include "engine/GameObject.h"
 #include "engine/Component.h"
+#include <cmath>
 
 namespace engine {
 
-auto GameObject::getParent() -> GameObject * { return _parent; }
+auto GameObject::getParent() const -> GameObject * { return _parent; }
 
 auto GameObject::isRoot() const -> bool { return _parent == nullptr; }
 
@@ -25,15 +26,27 @@ auto GameObject::getChildren() -> std::vector<std::unique_ptr<GameObject>> & { r
 
 auto GameObject::hasComponents() const -> bool { return !_components.empty(); }
 
-auto GameObject::getWorldTransform() -> Transform {
+auto GameObject::getWorldTransform() const -> Transform {
     if (isRoot()) {
         return localTransform;
     }
-    auto worldTransform = getParent()->getWorldTransform();
-    worldTransform.position = worldTransform.position + localTransform.position;
-    worldTransform.scale = Vector2(worldTransform.scale.x * localTransform.scale.x,
-                                   worldTransform.scale.y * localTransform.scale.y);
-    worldTransform.rotation += localTransform.rotation;
+    auto parentWorld = getParent()->getWorldTransform();
+    Transform worldTransform{};
+    worldTransform.rotation = parentWorld.rotation + localTransform.rotation;
+    worldTransform.scale = parentWorld.scale * localTransform.scale;
+
+    float scaledX = localTransform.position.x * parentWorld.scale.x;
+    float scaledY = localTransform.position.y * parentWorld.scale.y;
+
+    float cosA = std::cos(parentWorld.rotation);
+    float sinA = std::sin(parentWorld.rotation);
+
+    float rotatedX = cosA * scaledX - sinA * scaledY;
+    float rotatedY = sinA * scaledX + cosA * scaledY;
+
+    worldTransform.position =
+        Vector2(parentWorld.position.x + rotatedX, parentWorld.position.y + rotatedY);
+
     return worldTransform;
 }
 } // namespace engine

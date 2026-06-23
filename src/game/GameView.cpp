@@ -59,8 +59,10 @@ void GameView::createBoard(engine::GameObject *owner) {
             tile->localTransform.position = {
                 .x = i * spacing, .y = j * spacing + _boardProperties.verticalBoardOffset};
             auto renderComponent = tile->addComponent<engine::RenderComponent>(tiles);
-            renderComponent->setTextureRect(
-                {.left = 0, .top = 0, .width = _textureTileSize, .height = _textureTileSize});
+            renderComponent->setTextureRect({.left = 0,
+                                             .top = 0,
+                                             .width = _boardProperties.screenTileSize,
+                                             .height = _boardProperties.screenTileSize});
             owner->addChild(std::move(tile));
 
             // building tile
@@ -83,7 +85,7 @@ void GameView::createPlayers(engine::GameObject *owner) {
         "assets/textures/Player-1-Spritesheet-Without-Towers.png");
     auto player2Texture = std::make_shared<engine::Texture>(
         "assets/textures/Player-2-Spritesheet-Without-Towers.png");
-
+    auto playerSpriteHeight = (int)(_boardProperties.screenTileSize * 1.5f);
     for (const auto &[id, position, selected, placed, playerNumber] : _gameStateData.workers) {
         auto worker = std::make_unique<engine::GameObject>();
         worker->enabled = false; // disable worker until they are placed on the board
@@ -91,17 +93,19 @@ void GameView::createPlayers(engine::GameObject *owner) {
         if (playerNumber == 1) {
             auto workerRenderComponent =
                 worker->addComponent<engine::RenderComponent>(player1Texture, 30);
-            workerRenderComponent->setTextureRect(
-                {.left = 0, .top = 0, .width = _textureTileSize, .height = _playerSpriteHeight});
+            workerRenderComponent->setTextureRect({.left = 0,
+                                                   .top = 0,
+                                                   .width = _boardProperties.screenTileSize,
+                                                   .height = playerSpriteHeight});
             workerRenderComponent->setPivot({.x = 0.5f, .y = 0.666f});
 
         } else {
             auto workerRenderComponent =
                 worker->addComponent<engine::RenderComponent>(player2Texture, 30);
-            workerRenderComponent->setTextureRect({.left = _textureTileSize,
+            workerRenderComponent->setTextureRect({.left = _boardProperties.screenTileSize,
                                                    .top = 0,
-                                                   .width = _textureTileSize,
-                                                   .height = _playerSpriteHeight});
+                                                   .width = _boardProperties.screenTileSize,
+                                                   .height = playerSpriteHeight});
             workerRenderComponent->setPivot({.x = 0.5f, .y = 0.666f});
         }
         _workerObjects[id] = worker.get();
@@ -161,7 +165,7 @@ void GameView::setupLabels(engine::GameObject *owner) {
 }
 
 void GameView::updateLabels() {
-    auto labelHeight = 32;
+    auto labelHeight = _boardProperties.screenTileSize;
     auto player1turnRect = engine::Rect{.left = 0, .top = 0, .width = 92, .height = labelHeight};
     auto player2turnRect =
         engine::Rect{.left = 0, .top = labelHeight * 1, .width = 93, .height = labelHeight};
@@ -227,11 +231,11 @@ void GameView::updateLabels() {
 }
 
 void GameView::fillBuildingTextureRects() {
-    auto buildingHeight = (int)(_textureTileSize * 1.25f);
+    auto buildingHeight = (int)(_boardProperties.screenTileSize * 1.25f);
     auto getBuildingTextureRect = [&](int row, int column) {
-        return engine::Rect{.left = column * _textureTileSize,
+        return engine::Rect{.left = column * _boardProperties.screenTileSize,
                             .top = row * buildingHeight,
-                            .width = _textureTileSize,
+                            .width = _boardProperties.screenTileSize,
                             .height = buildingHeight};
     };
     _buildingTextureRects[BuildingLevel::None] =
@@ -288,6 +292,7 @@ void GameView::updateBoard() {
 void GameView::updatePlayerPositions() {
     _player1MovePreview->enabled = false;
     _player2MovePreview->enabled = false;
+    auto playerSpriteHeight = (int)(_boardProperties.screenTileSize * 1.5f);
     for (const auto &[id, position, selected, placed, playerNumber] : _gameStateData.workers) {
         if (_workerObjects[id] == nullptr) {
             continue; // skip if worker is not yet placed on the board
@@ -314,9 +319,9 @@ void GameView::updatePlayerPositions() {
                                                        tile->localTransform.position.y};
         auto buildingLevel = _gameStateData.tileData[position].buildingLevel;
         workerRenderComponent->setTextureRect({.left = 0,
-                                               .top = _playerSpriteHeight * (int)buildingLevel,
-                                               .width = _textureTileSize,
-                                               .height = _playerSpriteHeight});
+                                               .top = playerSpriteHeight * (int)buildingLevel,
+                                               .width = _boardProperties.screenTileSize,
+                                               .height = playerSpriteHeight});
     }
 }
 
@@ -329,15 +334,15 @@ void GameView::animatedBuildingPlacement(int x, int y, BuildingLevel level) {
     if (animationComponent == nullptr) {
         return;
     }
-    auto buildingHeight = (int)(_textureTileSize * 1.25f);
+    auto buildingHeight = (int)(_boardProperties.screenTileSize * 1.25f);
     auto getBuildingFrameInfo = [&](int row, int column, int totalFrames) {
         return engine::FrameInfo{
             .framesPerSecond = 8,
             .totalFrames = totalFrames,
-            .width = _textureTileSize,
+            .width = _boardProperties.screenTileSize,
             .height = buildingHeight,
             .verticalOffset = row * buildingHeight,
-            .horizontalOffset = column * _textureTileSize,
+            .horizontalOffset = column * _boardProperties.screenTileSize,
             .horizontalFrameCount = totalFrames,
             .verticalFrameCount = 1,
             .horizontalPadding = 0,
@@ -369,6 +374,7 @@ void GameView::animatedBuildingPlacement(int x, int y, BuildingLevel level) {
 }
 
 void GameView::animatedWorkerPlacement(int workerId) {
+    auto playerSpriteHeight = (int)(_boardProperties.screenTileSize * 1.5f);
     auto worker = _workerObjects[workerId];
     if (worker == nullptr) {
         return;
@@ -382,10 +388,10 @@ void GameView::animatedWorkerPlacement(int workerId) {
     animationComponent->setFrameInfo({
         .framesPerSecond = 10,
         .totalFrames = 7,
-        .width = _textureTileSize,
-        .height = _playerSpriteHeight,
-        .verticalOffset = (12 + buildingLevel) * _playerSpriteHeight,
-        .horizontalOffset = 0 * _textureTileSize,
+        .width = _boardProperties.screenTileSize,
+        .height = playerSpriteHeight,
+        .verticalOffset = (12 + buildingLevel) * playerSpriteHeight,
+        .horizontalOffset = 0 * _boardProperties.screenTileSize,
         .horizontalFrameCount = 7,
         .verticalFrameCount = 1,
         .horizontalPadding = 0,
@@ -404,6 +410,7 @@ void GameView::animatedWorkerPlacement(int workerId) {
 
 void GameView::workerMovementAnimation(int workerId, int originX, int originY, int destinationX,
                                        int destinationY) {
+    auto playerSpriteHeight = (int)(_boardProperties.screenTileSize * 1.5f);
     auto worker = _workerObjects[workerId];
     if (worker == nullptr) {
         return;
@@ -417,10 +424,10 @@ void GameView::workerMovementAnimation(int workerId, int originX, int originY, i
     auto appearFrameInfo = engine::FrameInfo{
         .framesPerSecond = 10,
         .totalFrames = 7,
-        .width = _textureTileSize,
-        .height = _playerSpriteHeight,
-        .verticalOffset = (12 + newBuildingLevel) * _playerSpriteHeight,
-        .horizontalOffset = 0 * _textureTileSize,
+        .width = _boardProperties.screenTileSize,
+        .height = playerSpriteHeight,
+        .verticalOffset = (12 + newBuildingLevel) * playerSpriteHeight,
+        .horizontalOffset = 0 * _boardProperties.screenTileSize,
         .horizontalFrameCount = 7,
         .verticalFrameCount = 1,
         .horizontalPadding = 0,
@@ -440,10 +447,10 @@ void GameView::workerMovementAnimation(int workerId, int originX, int originY, i
     auto disappearFrameInfo =
         engine::FrameInfo{.framesPerSecond = 10,
                           .totalFrames = 7,
-                          .width = _textureTileSize,
-                          .height = _playerSpriteHeight,
-                          .verticalOffset = (8 + oldBuildingLevel) * _playerSpriteHeight,
-                          .horizontalOffset = 0 * _textureTileSize,
+                          .width = _boardProperties.screenTileSize,
+                          .height = playerSpriteHeight,
+                          .verticalOffset = (8 + oldBuildingLevel) * playerSpriteHeight,
+                          .horizontalOffset = 0 * _boardProperties.screenTileSize,
                           .horizontalFrameCount = 7,
                           .verticalFrameCount = 1,
                           .horizontalPadding = 0,
@@ -466,18 +473,19 @@ void GameView::tileHoveredPreview(int x, int y) {
     if (renderComponent == nullptr) {
         return;
     }
-    auto buildingHeight = (int)(_textureTileSize * 1.25f);
+    auto buildingHeight = (int)(_boardProperties.screenTileSize * 1.25f);
+    auto playerSpriteHeight = (int)(_boardProperties.screenTileSize * 1.5f);
     auto getBuildingPreviewTexstureRect = [&](int row, int column) {
-        return engine::Rect{.left = column * _textureTileSize,
+        return engine::Rect{.left = column * _boardProperties.screenTileSize,
                             .top = row * buildingHeight,
-                            .width = _textureTileSize,
+                            .width = _boardProperties.screenTileSize,
                             .height = buildingHeight};
     };
     auto getPlayerPreviewTextureRect = [&](int row, int column) {
-        return engine::Rect{.left = column * _textureTileSize,
-                            .top = _playerSpriteHeight * row,
-                            .width = _textureTileSize,
-                            .height = _playerSpriteHeight};
+        return engine::Rect{.left = column * _boardProperties.screenTileSize,
+                            .top = playerSpriteHeight * row,
+                            .width = _boardProperties.screenTileSize,
+                            .height = playerSpriteHeight};
     };
 
     switch (_gameStateData.turn) {

@@ -15,6 +15,8 @@ struct BoardProperties {
     int numTiles{};       /// number of tiles in one row/column of the board
     int screenTileSize{}; /// size of each tile in actual pixels on the screen (including scale of
                           /// parent), assumes square tiles
+
+    float worldScale{1.0f}; // render scale
     int workersPerPlayer{};
     int verticalBoardOffset{}; // vertical offset in pixels to account for the board texture not
                                // being centered on the
@@ -43,8 +45,6 @@ class GameManager : public engine::Component {
     GameView _gameView{_gameStateData, _boardProperties};
     InputSystem _inputSystem{_boardProperties};
     AudioSystem _audioSystem{};
-    int _textureTileSize{}; /// size of the board tiles in pixels, hardcoded in start() for now,
-                            /// could be made configurable
     engine::MessageBus *_messageBus{nullptr};
     void computeBoardBounds();
 };
