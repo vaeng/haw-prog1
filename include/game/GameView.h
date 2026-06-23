@@ -7,11 +7,14 @@
 #include "game/GameState.h"
 
 #include <map>
+#include <unordered_map>
 
 namespace game {
 
 class GameStateData;
 class BoardProperties;
+
+enum class Directions : uint8_t { DownRight, Right, UpRight, Up, UpLeft, Left, DownLeft, Down };
 
 /// GameView is responsible for rendering the game state to the screen
 ///
@@ -55,6 +58,13 @@ class GameView {
         nullptr}; // GameObject used to show a preview of where player 1 is about to move, updated
                   // on tile hover
     engine::GameObject *_player2MovePreview{nullptr}; // same as above but for player 2
+    engine::GameObject *_arrowParent{nullptr}; // GameObject used to parent all the arrow previews
+
+    std::unordered_map<Directions, engine::GameObject *> _arrowObjects;
+    std::shared_ptr<engine::Texture>
+        _moveArrowTexture; // texture for the arrow previews, shared between all arrow objects
+    std::shared_ptr<engine::Texture>
+        _buildArrowTexture; // texture for the arrow previews, shared between all arrow objects
 
     /// Updates the player and game state labels to reflect the current game state
     ///
@@ -106,6 +116,12 @@ class GameView {
 
     /// Shows a preview of the possible move when hovering over a tile for build/move
     void tileHoveredPreview(int x, int y);
+
+    /// Shows a preview of possible build / move directions, with a arrows
+    void highlightActionsWithArrows(int x, int y);
+
+    /// Helper function to get the tile position in a given direction from a given tile position
+    std::pair<int, int> getTileFromDirection(int x, int y, Directions direction);
 };
 
 } // namespace game

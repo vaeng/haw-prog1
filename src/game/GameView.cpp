@@ -2,6 +2,7 @@
 #include "engine/AnimationComponent.h"
 #include "engine/GameObject.h"
 #include "engine/RenderComponent.h"
+#include "engine/Vector2.h"
 #include "game/GameManager.h"
 
 namespace game {
@@ -32,6 +33,38 @@ void GameView::setup(engine::GameObject *owner, engine::MessageBus *bus) {
         });
     // trigger initial setup of labels and highlights based on initial game state
     fillBuildingTextureRects();
+
+    // setup for arrow previews
+    auto arrowParent = std::make_unique<engine::GameObject>();
+    _arrowParent = arrowParent.get();
+    owner->addChild(std::move(arrowParent));
+    _moveArrowTexture =
+        std::make_shared<engine::Texture>("assets/textures/Arrows-Move-Spritesheet.png");
+    _buildArrowTexture =
+        std::make_shared<engine::Texture>("assets/textures/Arrows-Build-Spritesheet.png");
+
+    for (int i = 0; i < 8; ++i) {
+        auto arrow = std::make_unique<engine::GameObject>();
+        arrow->enabled = false;
+        arrow->addComponent<engine::RenderComponent>(_moveArrowTexture, 100);
+        auto arrowAnimationComponent = arrow->addComponent<engine::AnimationComponent>();
+        arrowAnimationComponent->setFrameInfo({
+            .framesPerSecond = 3,
+            .totalFrames = 2,
+            .width = _boardProperties.screenTileSize,
+            .height = _boardProperties.screenTileSize,
+            .verticalOffset = i * _boardProperties.screenTileSize,
+            .horizontalOffset = 0,
+            .horizontalFrameCount = 2,
+            .verticalFrameCount = 1,
+            .horizontalPadding = 0,
+            .verticalPadding = 0,
+        });
+        arrowAnimationComponent->setLooping(true);
+        arrowAnimationComponent->play();
+        _arrowObjects[static_cast<Directions>(i)] = arrow.get();
+        _arrowParent->addChild(std::move(arrow));
+    }
 }
 
 void GameView::createBoard(engine::GameObject *owner) {
@@ -247,24 +280,9 @@ void GameView::fillBuildingTextureRects() {
 }
 
 void GameView::highlightPossibleActions() {
-    for (auto &[position, data] : _gameStateData.tileData) {
-        switch (data.highlight) {
-        case HighlightType::CanMove:
-            _tileObjects[position]->getComponent<engine::RenderComponent>()->setTint(
-                {150, 150, 255});
-            break;
-        case HighlightType::CanBuild:
-            _tileObjects[position]->getComponent<engine::RenderComponent>()->setTint(
-                {150, 255, 150});
-            break;
-        case HighlightType::BlockedMove:
-        case HighlightType::BlockedBuild:
-            _tileObjects[position]->getComponent<engine::RenderComponent>()->setTint(
-                {255, 150, 150});
-            break;
-        case HighlightType::None:
-            _tileObjects[position]->getComponent<engine::RenderComponent>()->setTint(
-                {255, 255, 255});
+    for (auto const &[id, position, selected, placed, number] : _gameStateData.workers) {
+        if (selected) {
+            highlightActionsWithArrows(position.first, position.second);
             break;
         }
     }
@@ -516,6 +534,59 @@ void GameView::tileHoveredPreview(int x, int y) {
         break;
     default:
         break;
+    }
+}
+
+std::pair<int, int> GameView::getTileFromDirection(int x, int y, Directions direction) {
+    switch (direction) {
+    case Directions::Up:
+        return {x, y - 1};
+    case Directions::Down:
+        return {x, y + 1};
+    case Directions::Left:
+        return {x - 1, y};
+    case Directions::Right:
+        return {x + 1, y};
+    case Directions::UpLeft:
+        return {x - 1, y - 1};
+    case Directions::UpRight:
+        return {x + 1, y - 1};
+    case Directions::DownLeft:
+        return {x - 1, y + 1};
+    case Directions::DownRight:
+        return {x + 1, y + 1};
+    }
+}
+
+void GameView::highlightActionsWithArrows(int x, int y) {
+    _arrowParent->localTransform.position = _tileObjects[{x, y}]->localTransform.position;
+    for (auto &[direction, arrow] : _arrowObjects) {
+        auto [targetX, targetY] = getTileFromDirection(x, y, direction);
+        if (!_gameStateData.tileData.contains({targetX, targetY})) {
+            arrow->enabled = false; // out of bounds
+            continue;
+        }
+        auto highlightType = _gameStateData.tileData[{targetX, targetY}].highlight;
+        auto arrowRenderComponent = arrow->getComponent<engine::RenderComponent>();
+        if (arrowRenderComponent == nullptr) {
+            continue;
+        }
+        auto arrowAnimationComponent = arrow->getComponent<engine::AnimationComponent>();
+        if (arrowAnimationComponent == nullptr) {
+            continue;
+        }
+        if (highlightType == HighlightType::CanMove) {
+            arrowRenderComponent->setTexture(_moveArrowTexture);
+            arrowAnimationComponent->play();
+            arrow->enabled = true;
+        } else if (highlightType == HighlightType::CanBuild) {
+            arrowRenderComponent->setTexture(_buildArrowTexture);
+            arrowAnimationComponent->play();
+            arrow->enabled = true;
+        } else {
+            arrowAnimationComponent->stop();
+            arrow->enabled = false;
+        }
     }
 }
 
