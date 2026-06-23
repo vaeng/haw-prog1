@@ -35,6 +35,7 @@ class RenderComponent : public Component {
     Rect getTextureRect() const;
     void render(float deltaTime);
     void setTint(Color tintColor);
+    Rect getLocalBounds() const;
     [[nodiscard]] std::unique_ptr<Component> clone() const override;
 
   private:

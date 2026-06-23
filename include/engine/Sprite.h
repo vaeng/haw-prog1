@@ -82,6 +82,17 @@ class Sprite {
         }
     }
 
+    auto getBounds() const -> Rect {
+        if (!_sprite) {
+            return {.left = 0, .top = 0, .width = 0, .height = 0};
+        }
+        auto bounds = _sprite->getLocalBounds();
+        return {.left = static_cast<int>(bounds.position.x),
+                .top = static_cast<int>(bounds.position.y),
+                .width = static_cast<int>(bounds.size.x),
+                .height = static_cast<int>(bounds.size.y)};
+    }
+
     auto getNative() -> sf::Sprite & { return *_sprite; }
 
   private:
