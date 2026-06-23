@@ -7,7 +7,9 @@
 #include "engine/Texture.h"
 #include "engine/Vector2.h"
 
+#include "game/ButtonComponent.h"
 #include "game/GameManager.h"
+#include "game/GameState.h"
 
 namespace game {
 
@@ -41,7 +43,7 @@ auto exampleWithRick() -> engine::GameObject {
     return sceneRoot;
 }
 
-auto createScene() -> engine::GameObject {
+auto gameScene() -> engine::GameObject {
     engine::GameObject sceneRoot{};
 
     auto board = std::make_unique<engine::GameObject>();
@@ -53,4 +55,22 @@ auto createScene() -> engine::GameObject {
     sceneRoot.addChild(std::move(board));
     return sceneRoot;
 }
+auto mainScene() -> engine::GameObject {
+    engine::GameObject sceneRoot{};
+
+    auto background = std::make_unique<engine::GameObject>();
+    auto rc = background->addComponent<engine::RenderComponent>(
+        std::make_shared<engine::Texture>("assets/textures/TitleScreen.png"));
+    rc->setTextureRect({0, 0, 224, 256});
+    background->localTransform.position = {.x = 224 * 1.5f, .y = 256 * 1.5f};
+    background->localTransform.scale = {.x = 3.0f, .y = 3.0f};
+
+    auto buttonComponent = background->addComponent<game::ButtonComponent>();
+    buttonComponent->setOnClickCallback(
+        []() { printf("Button clicked! Transitioning to game scene...\n"); });
+    sceneRoot.addChild(std::move(background));
+
+    return sceneRoot;
+}
+auto createScene() -> engine::GameObject { return mainScene(); }
 } // namespace game
