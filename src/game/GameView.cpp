@@ -38,11 +38,11 @@ void GameView::setup(engine::GameObject *owner, engine::MessageBus *bus) {
     auto arrowParent = std::make_unique<engine::GameObject>();
     _arrowParent = arrowParent.get();
     owner->addChild(std::move(arrowParent));
-    _moveArrowTexture =
-        std::make_shared<engine::Texture>("assets/textures/Arrows-Move-Spritesheet.png");
+    _moveArrowTexture = std::make_shared<engine::Texture>(
+        "assets/textures/Arrows-Move-Spritesheet-64x64-tiles-small.png");
     _moveArrowTexture->setSmooth(true);
-    _buildArrowTexture =
-        std::make_shared<engine::Texture>("assets/textures/Arrows-Build-Spritesheet.png");
+    _buildArrowTexture = std::make_shared<engine::Texture>(
+        "assets/textures/Arrows-Build-Spritesheet-64x64-tiles-small.png");
     _buildArrowTexture->setSmooth(true);
 
     for (int i = 0; i < 8; ++i) {
@@ -53,9 +53,9 @@ void GameView::setup(engine::GameObject *owner, engine::MessageBus *bus) {
         arrowAnimationComponent->setFrameInfo({
             .framesPerSecond = 3,
             .totalFrames = 2,
-            .width = _boardProperties.screenTileSize,
-            .height = _boardProperties.screenTileSize,
-            .verticalOffset = i * _boardProperties.screenTileSize,
+            .width = _boardProperties.screenTileSize * 2,
+            .height = _boardProperties.screenTileSize * 2,
+            .verticalOffset = i * _boardProperties.screenTileSize * 2,
             .horizontalOffset = 0,
             .horizontalFrameCount = 2,
             .verticalFrameCount = 1,
@@ -65,6 +65,7 @@ void GameView::setup(engine::GameObject *owner, engine::MessageBus *bus) {
         arrowAnimationComponent->setLooping(true);
         arrowAnimationComponent->play();
         _arrowObjects[static_cast<Directions>(i)] = arrow.get();
+        // arrow->localTransform.scale = {.x = 2, .y = 2};
         _arrowParent->addChild(std::move(arrow));
     }
 }
@@ -132,7 +133,7 @@ void GameView::createPlayers(engine::GameObject *owner) {
         worker->addComponent<engine::AnimationComponent>();
         if (playerNumber == 1) {
             auto workerRenderComponent =
-                worker->addComponent<engine::RenderComponent>(player1Texture, 30);
+                worker->addComponent<engine::RenderComponent>(player1Texture, 110);
             workerRenderComponent->setTextureRect({.left = 0,
                                                    .top = 0,
                                                    .width = _boardProperties.screenTileSize,
@@ -141,7 +142,7 @@ void GameView::createPlayers(engine::GameObject *owner) {
 
         } else {
             auto workerRenderComponent =
-                worker->addComponent<engine::RenderComponent>(player2Texture, 30);
+                worker->addComponent<engine::RenderComponent>(player2Texture, 110);
             workerRenderComponent->setTextureRect({.left = _boardProperties.screenTileSize,
                                                    .top = 0,
                                                    .width = _boardProperties.screenTileSize,
@@ -157,7 +158,7 @@ void GameView::createPlayers(engine::GameObject *owner) {
     auto player1MovePreview = std::make_unique<engine::GameObject>();
     player1MovePreview->enabled = false;
     auto player1MovePreviewRenderComponent =
-        player1MovePreview->addComponent<engine::RenderComponent>(player1Texture, 50);
+        player1MovePreview->addComponent<engine::RenderComponent>(player1Texture, 100);
     _player1MovePreview = player1MovePreview.get();
     player1MovePreviewRenderComponent->setPivot({.x = 0.5f, .y = 0.666f});
     owner->addChild(std::move(player1MovePreview));
@@ -165,7 +166,7 @@ void GameView::createPlayers(engine::GameObject *owner) {
     auto player2MovePreview = std::make_unique<engine::GameObject>();
     player2MovePreview->enabled = false;
     auto player2MovePreviewRenderComponent =
-        player2MovePreview->addComponent<engine::RenderComponent>(player2Texture, 50);
+        player2MovePreview->addComponent<engine::RenderComponent>(player2Texture, 100);
     _player2MovePreview = player2MovePreview.get();
     player2MovePreviewRenderComponent->setPivot({.x = 0.5f, .y = 0.666f});
     owner->addChild(std::move(player2MovePreview));
@@ -363,7 +364,7 @@ void GameView::animatedBuildingPlacement(int x, int y, BuildingLevel level) {
     auto buildingHeight = (int)(_boardProperties.screenTileSize * 1.25f);
     auto getBuildingFrameInfo = [&](int row, int column, int totalFrames) {
         return engine::FrameInfo{
-            .framesPerSecond = 8,
+            .framesPerSecond = 12,
             .totalFrames = totalFrames,
             .width = _boardProperties.screenTileSize,
             .height = buildingHeight,
@@ -412,7 +413,7 @@ void GameView::animatedWorkerPlacement(int workerId) {
     auto buildingLevel =
         (int)_gameStateData.tileData[_gameStateData.workers[workerId].position].buildingLevel;
     animationComponent->setFrameInfo({
-        .framesPerSecond = 10,
+        .framesPerSecond = 12,
         .totalFrames = 7,
         .width = _boardProperties.screenTileSize,
         .height = playerSpriteHeight,
@@ -448,7 +449,7 @@ void GameView::workerMovementAnimation(int workerId, int originX, int originY, i
     auto newBuildingLevel =
         (int)_gameStateData.tileData[{destinationX, destinationY}].buildingLevel;
     auto appearFrameInfo = engine::FrameInfo{
-        .framesPerSecond = 10,
+        .framesPerSecond = 24,
         .totalFrames = 7,
         .width = _boardProperties.screenTileSize,
         .height = playerSpriteHeight,
@@ -471,7 +472,7 @@ void GameView::workerMovementAnimation(int workerId, int originX, int originY, i
     auto vectorToMove = _tileObjects[{originX, originY}]->localTransform.position -
                         _tileObjects[{destinationX, destinationY}]->localTransform.position;
     auto disappearFrameInfo =
-        engine::FrameInfo{.framesPerSecond = 10,
+        engine::FrameInfo{.framesPerSecond = 24,
                           .totalFrames = 7,
                           .width = _boardProperties.screenTileSize,
                           .height = playerSpriteHeight,
