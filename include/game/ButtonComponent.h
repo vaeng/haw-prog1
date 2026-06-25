@@ -14,15 +14,23 @@ class ButtonComponent : public engine::Component {
     [[nodiscard]] std::unique_ptr<engine::Component> clone() const override;
 
     void setOnClickCallback(std::function<void()> callback);
+    void setOnReleaseCallback(std::function<void()> callback);
     void setOnHoverCallback(std::function<void()> callback);
+    void setOnMouseExitCallback(std::function<void()> callback);
+
+    void setButtonBounds(engine::Rect bounds);
+    [[nodiscard]] const engine::Rect &getButtonBounds() const;
 
   private:
     bool isHovered{false};
     engine::Rect _buttonBounds{};
+    engine::Rect _customBounds{};
     std::function<void()> _onClickCallback;
     std::function<void()> _onHoverCallback;
+    std::function<void()> _onReleaseCallback;
+    std::function<void()> _onMouseExitCallback;
 
-    [[nodiscard]] bool isPointInRect(int x, int y, const engine::Rect &rect) const;
+    [[nodiscard]] bool isPointInRect(int x, int y) const;
 };
 
 } // namespace game

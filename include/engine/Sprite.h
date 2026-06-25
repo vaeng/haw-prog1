@@ -10,10 +10,10 @@
 namespace engine {
 
 struct Rect {
-    int left;
-    int top;
-    int width;
-    int height;
+    int left{};
+    int top{};
+    int width{};
+    int height{};
 };
 
 struct Color {
