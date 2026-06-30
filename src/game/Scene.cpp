@@ -8,6 +8,7 @@
 #include "engine/Texture.h"
 #include "engine/Vector2.h"
 
+#include "engine/JsonConversion.h"
 #include "engine/RenderComponent.h"
 #include "game/ButtonComponent.h"
 #include "game/GameManager.h"
@@ -178,6 +179,10 @@ auto mainScene() -> engine::GameObject {
     howToButtonComponent->setOnClickCallback([howToRC]() {
         howToRC->setTextureRect({.left = 96 * 2, .top = 48, .width = 96, .height = 48});
     });
+
+    printf("Starting game...\n");
+    json j{};
+    printf("Serialized rendercomponent: %s\n", j.dump().c_str());
 
     background->addChild(std::move(startButton));
     background->addChild(std::move(howToButton));

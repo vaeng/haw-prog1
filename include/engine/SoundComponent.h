@@ -20,6 +20,8 @@ class SoundComponent : public Component {
         _soundInstance.setBuffer(_soundBuffer->getNative());
     }
 
+    std::shared_ptr<SoundBuffer> getSoundBuffer() const { return _soundBuffer; }
+
     void play() { _soundInstance.play(); }
 
     void stop() { _soundInstance.stop(); }

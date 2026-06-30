@@ -29,8 +29,11 @@ class RenderComponent : public Component {
             _texture->setRepeated(repeated);
         }
     }
+    bool isRepeated() const { return _repeated; }
     void setPivot(const Vector2 &pivot);
+    [[nodiscard]] Vector2 getPivot() const;
     void setTexture(const std::shared_ptr<Texture> &texture);
+    [[nodiscard]] std::shared_ptr<Texture> getTexture() const { return _texture; }
     void setTextureRect(const Rect &rect);
     Rect getTextureRect() const;
     void render(float deltaTime);

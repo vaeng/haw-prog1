@@ -32,6 +32,7 @@ target_compile_features(engine PUBLIC cxx_std_23)
 target_include_directories(engine
     PUBLIC
         include
+        third_party
 )
 
 # engine uses SFML types in its headers/sources; link SFML to ensure include

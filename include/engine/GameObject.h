@@ -85,6 +85,16 @@ class GameObject {
         return nullptr;
     }
 
+    /// Gets the components of this GameObject
+    ///
+    /// Returns a reference to the vector of unique pointers to the components. Modifying this
+    /// vector will modify the components of this GameObject, but be careful not to break the
+    /// owner-child relationship (e.g. by moving a component to another GameObject without updating
+    /// its owner pointer).
+    [[nodiscard]] auto getComponents() -> std::vector<std::unique_ptr<Component>> & {
+        return _components;
+    }
+
     /// Starts all components of this GameObject
     ///
     /// This should be called once, after the GameObject is added to a scene and before the game

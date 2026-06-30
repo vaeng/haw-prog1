@@ -26,6 +26,8 @@ void RenderComponent::setPivot(const Vector2 &pivot) {
     _sprite.setPivot(_pivot);
 }
 
+Vector2 RenderComponent::getPivot() const { return _pivot; }
+
 void RenderComponent::setTextureRect(const Rect &rect) {
     _textureRect = rect;
     if (_textureRect.width > 0 && _textureRect.height > 0) {
